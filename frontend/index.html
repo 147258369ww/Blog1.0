@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- 移动端优化: 响应式视口配置 -->
+    <!-- width=device-width: 视口宽度等于设备宽度 -->
+    <!-- initial-scale=1.0: 初始缩放比例为 1:1 -->
+    <!-- maximum-scale=5.0: 允许用户放大到 5 倍（可访问性） -->
+    <!-- user-scalable=yes: 允许用户缩放（可访问性） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    
+    <meta name="theme-color" content="#FFFFFF" />
+    
+    <!-- 资源预加载优化 -->
+    <!-- DNS预解析 - 提前解析API域名 -->
+    <link rel="dns-prefetch" href="//api.yourdomain.com" />
+    
+    <!-- 预连接 - 建立早期连接 -->
+    <link rel="preconnect" href="//api.yourdomain.com" crossorigin />
+    
+    <!-- 预加载关键资源 -->
+    <link rel="modulepreload" href="/src/main.ts" />
+    
+    <title>THE BLOG</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

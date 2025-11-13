@@ -1,0 +1,281 @@
+/* ============================================
+   移动端优化样式
+   确保所有触摸目标尺寸 ≥ 44px
+   ============================================ */
+
+/* 通用触摸目标最小尺寸 */
+@media (max-width: 834px) {
+  /* 按钮最小触摸目标 */
+  button,
+  .button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 链接最小触摸目标 */
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 表单输入最小高度 */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+
+  /* 复选框和单选按钮 */
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 24px;
+    min-height: 24px;
+    cursor: pointer;
+  }
+
+  /* 复选框和单选按钮的标签 */
+  input[type="checkbox"] + label,
+  input[type="radio"] + label {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 8px;
+    cursor: pointer;
+  }
+
+  /* 导航链接 */
+  nav a,
+  .nav-link {
+    min-height: 44px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 图标按钮 */
+  .icon-button,
+  button[aria-label] {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 卡片可点击区域 */
+  .card-link,
+  .post-card a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 标签和徽章 */
+  .badge,
+  .tag {
+    min-height: 32px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 分页按钮 */
+  .pagination button,
+  .pagination a {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   触摸反馈优化
+   ============================================ */
+@media (max-width: 834px) {
+  /* 移除点击高亮 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* 添加自定义触摸反馈 */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+  }
+
+  /* 禁用文本选择（在某些交互元素上） */
+  button,
+  [role="button"],
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* ============================================
+   滚动优化
+   ============================================ */
+@media (max-width: 834px) {
+  /* 平滑滚动 */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 优化滚动性能 */
+  .scroll-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ============================================
+   字体大小优化
+   ============================================ */
+@media (max-width: 834px) {
+  /* 防止 iOS Safari 自动缩放 */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* 确保可读性 */
+  body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* 标题缩放 */
+  h1 {
+    font-size: 32px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  h5 {
+    font-size: 18px;
+  }
+
+  h6 {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   间距优化
+   ============================================ */
+@media (max-width: 834px) {
+  /* 增加移动端间距 */
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* 卡片间距 */
+  .card {
+    margin-bottom: 16px;
+  }
+
+  /* 表单元素间距 */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  /* 按钮间距 */
+  .button-group button {
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+}
+
+/* ============================================
+   性能优化
+   ============================================ */
+@media (max-width: 834px) {
+  /* GPU 加速 */
+  .animated,
+  .transition {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* 减少动画复杂度 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================
+   横屏优化
+   ============================================ */
+@media (max-width: 834px) and (orientation: landscape) {
+  /* 横屏时减小垂直间距 */
+  .hero {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+
+  /* 导航栏高度调整 */
+  .header {
+    height: 56px;
+  }
+}
+
+/* ============================================
+   安全区域适配（iPhone X 及以上）
+   ============================================ */
+@supports (padding: max(0px)) {
+  @media (max-width: 834px) {
+    body {
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+
+    .header {
+      padding-top: max(0px, env(safe-area-inset-top));
+    }
+
+    .mobile-menu__drawer {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+  }
+}

@@ -1,0 +1,55 @@
+/* 导入 CSS 变量 */
+@import './variables.css';
+
+/* 导入移动端优化样式 */
+@import './mobile.css';
+
+/* 全局样式 */
+:root {
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-normal);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-base), color var(--transition-base);
+  overflow: visible;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+/* 平滑过渡主题切换 */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: var(--transition-base);
+  transition-timing-function: ease-in-out;
+}
+
+/* 禁用某些元素的过渡效果 */
+*:focus,
+*:active,
+input,
+textarea,
+select {
+  transition: none;
+}
