@@ -98,6 +98,7 @@ public
 # yarn v2
 .yarn/cache
 .yarn/unplugged
+/admin
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
@@ -154,5 +155,4 @@ package-lock.json
 *.bat
 
 # Admin folder
-admin/
 resume/

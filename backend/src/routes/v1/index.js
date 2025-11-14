@@ -12,13 +12,13 @@ const statsRoutes = require('./stats');
 const settingsRoutes = require('./settings');
 
 // 管理员路由
-const adminAuthRoutes = require('../admin/auth');
-const adminPostsRoutes = require('../admin/posts');
-const adminCategoriesRoutes = require('../admin/categories');
-const adminTagsRoutes = require('../admin/tags');
-const adminFilesRoutes = require('../admin/files');
-const adminLinksRoutes = require('../admin/links');
-const adminConfigRoutes = require('../admin/config');
+const adminAuthRoutes = require('./admin/auth');
+const adminPostsRoutes = require('./admin/posts');
+const adminCategoriesRoutes = require('./admin/categories');
+const adminTagsRoutes = require('./admin/tags');
+const adminFilesRoutes = require('./admin/files');
+const adminLinksRoutes = require('./admin/links');
+const adminConfigRoutes = require('./admin/config');
 
 // 注册公开路由
 router.use('/auth', authRoutes);
