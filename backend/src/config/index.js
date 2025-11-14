@@ -1,17 +1,21 @@
 const path = require('path');
 
-// 只在环境变量未加载时才加载 dotenv
-// 避免与外部的 dotenv 加载冲突
-if (!process.env.PORT) {
-  // 根据 NODE_ENV 加载对应的环境配置文件
-  const envFile = process.env.NODE_ENV === 'production' 
-    ? '.env.production' 
-    : '.env.development';
+// 加载 dotenv：根据 NODE_ENV 选择对应环境文件
+// 注意：dotenv 默认不会覆盖已有的环境变量，始终加载更安全
+const envFile = (() => {
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      return '.env.production';
+    case 'test':
+      return '.env.test';
+    default:
+      return '.env.development';
+  }
+})();
 
-  require('dotenv').config({ 
-    path: path.resolve(process.cwd(), envFile) 
-  });
-}
+require('dotenv').config({
+  path: path.resolve(process.cwd(), envFile),
+});
 
 const requiredEnvVars = [
   'NODE_ENV',
