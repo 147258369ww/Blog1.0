@@ -35,6 +35,17 @@ class ConfigController {
       const config = await configService.getConfig(key);
 
       if (!config) {
+        // 如果是获取 about_profile，没找到时不报错，返回默认空结构
+        if (key === 'about_profile') {
+          return res.status(200).json({
+            success: true,
+            data: {
+              key: 'about_profile',
+              value: {},
+              type: 'json',
+            },
+          });
+        }
         return res.status(404).json({
           success: false,
           error: {

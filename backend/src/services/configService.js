@@ -168,7 +168,7 @@ class ConfigService {
         const { key, value, type, description, is_public } = configData;
 
         // 序列化值
-        const serializedValue = this.serializeValue(value, type || 'string');
+        const serializedValue = type === 'json' ? value : this.serializeValue(value, type || 'string');
 
         // 更新或创建配置
         const result = await this.updateConfig(key, {
