@@ -141,6 +141,8 @@ temp/
 docs/
 IFLOW.md
 backend-optimization.md
+后端总结.md
+backend-learning-plan.md
 
 # VSCode settings
 .vscode/
