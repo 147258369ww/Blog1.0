@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { isRetryableError } from '@/utils/retry'
+import { cacheManager } from '@/utils/cache'
 
 // 扩展 Axios 配置类型以支持重试计数
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -273,7 +274,19 @@ class HttpClient {
    * GET 请求
    */
   public get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.get(url, config)
+    const ttl = this.getTTLForUrl(url)
+    if (ttl > 0) {
+      const key = this.buildCacheKey(url, config)
+      const cached = cacheManager.get<T>(key)
+      if (cached !== null) {
+        return Promise.resolve(cached)
+      }
+      return (this.instance.get<T>(url, config) as unknown as Promise<T>).then((data: T) => {
+        cacheManager.set<T>(key, data, ttl)
+        return data
+      })
+    }
+    return this.instance.get(url, config) as unknown as Promise<T>
   }
 
   /**
@@ -302,6 +315,24 @@ class HttpClient {
    */
   public patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.patch(url, data, config)
+  }
+
+  private buildCacheKey(url: string, config?: AxiosRequestConfig): string {
+    const base = import.meta.env.VITE_API_BASE_URL || ''
+    const params = config?.params ? JSON.stringify(config.params) : ''
+    return `${base}|${url}|${params}`
+  }
+
+  private getTTLForUrl(url: string): number {
+    const idx = url.indexOf('?')
+    const u = idx === -1 ? url : url.slice(0, idx)
+    if (u.startsWith('/tags') || u.startsWith('/categories') || u.startsWith('/links') || u.startsWith('/settings')) {
+      return 5 * 60 * 1000
+    }
+    if (u.startsWith('/posts/search') || u.startsWith('/posts') || u.startsWith('/stats')) {
+      return 60 * 1000
+    }
+    return 0
   }
 }
 

@@ -107,6 +107,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use((req, res, next) => {
+  if (req.method === 'GET') {
+    const p = req.path || '';
+    let v = 'no-store';
+    if (p.startsWith('/api/v1/tags') || p.startsWith('/api/v1/categories') || p.startsWith('/api/v1/links') || p.startsWith('/api/v1/settings')) {
+      v = 'public, max-age=300, stale-while-revalidate=1800';
+    } else if (p.startsWith('/api/v1/posts') || p.startsWith('/api/v1/stats')) {
+      v = 'public, max-age=60, stale-while-revalidate=300';
+    }
+    res.setHeader('Cache-Control', v);
+  } else {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 // API 路由
 app.use('/api/v1', require('./routes/v1'));
 
