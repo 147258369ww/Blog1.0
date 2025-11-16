@@ -1,5 +1,6 @@
 const tagRepository = require('../repositories/tagRepository');
 const searchService = require('./searchService');
+const cacheService = require('./cacheService');
 const logger = require('../utils/logger');
 
 class TagService {
@@ -29,6 +30,8 @@ class TagService {
       });
 
       logger.info(`Tag created: ${tag.id}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAGS}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAG_POPULAR}*`);
       return tag;
     } catch (error) {
       logger.error('Error creating tag:', error);
@@ -72,6 +75,8 @@ class TagService {
       const updatedTag = await tagRepository.update(tagId, updateData);
 
       logger.info(`Tag updated: ${tagId}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAGS}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAG_POPULAR}*`);
       return updatedTag;
     } catch (error) {
       logger.error('Error updating tag:', error);
@@ -100,6 +105,8 @@ class TagService {
       await tagRepository.delete(tagId);
 
       logger.info(`Tag deleted: ${tagId}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAGS}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.TAG_POPULAR}*`);
       return { message: '标签已删除' };
     } catch (error) {
       logger.error('Error deleting tag:', error);
@@ -148,7 +155,10 @@ class TagService {
    */
   async getTags(filters = {}, options = {}) {
     try {
-      const tags = await tagRepository.findAll(filters, options);
+      const key = `${cacheService.KEY_PREFIXES.TAGS}list`;
+      const tags = await cacheService.getOrSet(key, async () => {
+        return await tagRepository.findAll(filters, options);
+      }, 300);
       return tags;
     } catch (error) {
       logger.error('Error getting tags:', error);
@@ -174,7 +184,10 @@ class TagService {
    */
   async getPopularTags(limit = 10) {
     try {
-      const tags = await tagRepository.getPopularTags(limit);
+      const key = `${cacheService.KEY_PREFIXES.TAG_POPULAR}${limit}`;
+      const tags = await cacheService.getOrSet(key, async () => {
+        return await tagRepository.getPopularTags(limit);
+      }, 600);
       return tags;
     } catch (error) {
       logger.error('Error getting popular tags:', error);
@@ -213,14 +226,19 @@ class TagService {
    */
   async getTagPosts(tagId, pagination = {}) {
     try {
-      // 先验证标签是否存在
       const tag = await tagRepository.findById(tagId);
       if (!tag) {
         throw new Error('标签不存在');
       }
-
-      // 获取标签下的文章
-      const result = await tagRepository.getTagPosts(tagId, pagination);
+      const { page = 1, pageSize = 12 } = pagination;
+      const key = cacheService.generateKey(
+        cacheService.KEY_PREFIXES.TAG,
+        tagId,
+        `posts:page:${page}:pageSize:${pageSize}`
+      );
+      const result = await cacheService.getOrSet(key, async () => {
+        return await tagRepository.getTagPosts(tagId, { page, pageSize });
+      }, 120);
       return result;
     } catch (error) {
       logger.error('Error getting tag posts:', error);

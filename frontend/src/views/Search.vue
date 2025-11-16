@@ -185,6 +185,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
 import { categoriesApi } from '@/services/api/categories'
@@ -224,7 +225,7 @@ const loadSearchHistory = () => {
       searchHistory.value = JSON.parse(stored)
     }
   } catch (error) {
-    console.error('Failed to load search history:', error)
+    errorHandler.log('Failed to load search history', ErrorLevel.ERROR, { error: String(error) })
     searchHistory.value = []
   }
 }
@@ -240,7 +241,7 @@ const saveSearchHistory = (query: string) => {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(searchHistory.value))
   } catch (error) {
-    console.error('Failed to save search history:', error)
+    errorHandler.log('Failed to save search history', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 
@@ -250,7 +251,7 @@ const clearHistory = () => {
   try {
     localStorage.removeItem(HISTORY_KEY)
   } catch (error) {
-    console.error('Failed to clear search history:', error)
+    errorHandler.log('Failed to clear search history', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 

@@ -212,17 +212,14 @@ const validateEmail = () => {
  */
 const validateVerificationCode = () => {
   const code = formData.value.verificationCode.trim()
-  
   if (!code) {
     errors.value.verificationCode = '请输入验证码'
     return false
   }
-  
-  if (code.length < 4) {
-    errors.value.verificationCode = '请输入有效的验证码'
+  if (!/^\d{6}$/.test(code)) {
+    errors.value.verificationCode = '验证码必须为6位数字'
     return false
   }
-  
   errors.value.verificationCode = ''
   return true
 }
@@ -263,17 +260,18 @@ const validateUsername = () => {
  */
 const validatePassword = () => {
   const password = formData.value.password
-  
   if (!password) {
     errors.value.password = '请输入密码'
     return false
   }
-  
-  if (password.length < 6) {
-    errors.value.password = '密码至少需要6个字符'
+  if (password.length < 8) {
+    errors.value.password = '密码至少需要8个字符'
     return false
   }
-  
+  if (!/^(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+    errors.value.password = '密码必须包含字母和数字'
+    return false
+  }
   errors.value.password = ''
   return true
 }
@@ -316,7 +314,7 @@ const handleSendCode = async () => {
     toast.success('验证码已发送到您的邮箱！')
     currentStep.value = 2
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.message || '发送验证码失败，请重试'
+    errorMessage.value = error.response?.data?.error?.message || '发送验证码失败，请重试'
     toast.error(errorMessage.value)
   } finally {
     isLoading.value = false
@@ -352,7 +350,7 @@ const handleRegister = async () => {
     toast.success('账户创建成功！')
     router.push('/')
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.message || '注册失败，请重试'
+    errorMessage.value = error.response?.data?.error?.message || '注册失败，请重试'
     toast.error(errorMessage.value)
   } finally {
     isLoading.value = false

@@ -198,8 +198,15 @@ class HttpClient {
   private getErrorMessage(error: AxiosError): string {
     if (error.response) {
       // 服务器返回错误
-      const data = error.response.data as { message?: string }
-      return data?.message || `请求失败: ${error.response.status}`
+      const prod = import.meta.env.PROD
+      const data = error.response.data as { error?: { message?: string } }
+      if (error.response.status === 429) {
+        return '请求过于频繁，请稍后再试'
+      }
+      if (prod) {
+        return '请求失败，请稍后重试'
+      }
+      return data?.error?.message || `请求失败: ${error.response.status}`
     } else if (error.request) {
       // 请求已发送但没有收到响应
       return '网络错误，请检查您的网络连接'

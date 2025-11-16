@@ -57,7 +57,7 @@
       <div class="tags-page__popular">
         <h2 class="tags-page__popular-title">热门标签</h2>
         <div class="tags-page__popular-list">
-          <router-link
+          <RouterLink
             v-for="tag in popularTags"
             :key="tag.id"
             :to="`/tags/${tag.id}`"
@@ -74,7 +74,7 @@
                 :style="{ width: getTagPercentage(tag) + '%' }"
               ></div>
             </div>
-          </router-link>
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -83,6 +83,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { useRouter, RouterLink } from 'vue-router'
 import { tagsApi } from '@/services/api/tags'
 import TagCloud from '@/components/blog/TagCloud.vue'
@@ -146,7 +147,7 @@ const fetchTags = async () => {
     const response = await tagsApi.getTags()
     tags.value = response.data
   } catch (error) {
-    console.error('Failed to fetch tags:', error)
+    errorHandler.log('Failed to fetch tags', ErrorLevel.ERROR, { error: String(error) })
   } finally {
     loading.value = false
   }

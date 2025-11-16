@@ -24,7 +24,7 @@ class AuthService {
       }
 
       // 生成并发送验证码
-      const result = await emailService.generateAndSendVerificationCode(email);
+      await emailService.generateAndSendVerificationCode(email);
       
       logger.info(`Verification code sent to ${email}`);
       return {

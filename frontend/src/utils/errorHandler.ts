@@ -105,18 +105,12 @@ class ErrorHandler {
   /**
    * 发送到服务器
    */
-  private async sendToServer(errorLog: ErrorLog) {
+  private async sendToServer(_errorLog: ErrorLog) {
     try {
-      // 这里可以实现发送到日志服务器的逻辑
-      // 例如: Sentry, LogRocket, 自定义日志服务等
-      // await fetch('/api/v1/logs', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(errorLog),
-      // })
-      console.log('Error log would be sent to server:', errorLog)
-    } catch (error) {
-      console.error('Failed to send error log to server:', error)
+      // 可在此实现上报逻辑（生产环境不输出到控制台）
+      // 如需启用，请集成日志上报服务并调用其 SDK
+    } catch (_error) {
+      // 生产环境不输出到控制台
     }
   }
 

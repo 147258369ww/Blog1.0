@@ -19,7 +19,7 @@ const createTransporter = () => {
     });
 
     // 验证传输器配置
-    transporter.verify((error, success) => {
+    transporter.verify((error, _success) => {
       if (error) {
         logger.error('Email transporter verification failed:', error);
       } else {

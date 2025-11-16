@@ -1,6 +1,5 @@
 const { File } = require('../models');
 const fs = require('fs').promises;
-const path = require('path');
 const logger = require('../utils/logger');
 const { generateFileUrl } = require('../utils/urlHelper');
 

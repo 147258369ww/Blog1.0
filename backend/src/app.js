@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const swaggerSpec = require('./config/swagger');
 const morgan = require('morgan');
@@ -41,6 +43,39 @@ app.use(ipLogger);
 // 解析 JSON 请求体（增加大小限制以支持大文件上传）
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 6,
+  })
+);
+
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    const sanitized = JSON.parse(
+      JSON.stringify(body, (key, value) => (value === undefined ? undefined : value))
+    );
+    return originalJson(sanitized);
+  };
+  next();
+});
+
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: (req) => (req.user ? 1000 : 100),
+    keyGenerator: (req) => (req.user && req.user.id ? String(req.user.id) : req.ip),
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
 
 // 静态文件服务 - 提供上传文件的访问
 app.use('/uploads', express.static(config.upload.uploadDir, {

@@ -169,6 +169,7 @@ class PostRepository {
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
       distinct: true,
+      subQuery: false,
     };
 
     // 标签筛选（需要特殊处理）

@@ -1,11 +1,11 @@
 <template>
-  <router-link 
+  <RouterLink 
     :to="`/categories/${category.id}`"
     class="category-badge"
     :style="badgeStyle"
   >
     {{ category.name }}
-  </router-link>
+  </RouterLink>
 </template>
 
 <script setup lang="ts">

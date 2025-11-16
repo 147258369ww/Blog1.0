@@ -159,7 +159,7 @@ export class IntegrationTester {
           `分类数据: ${categoriesStore.categories.length} 个分类`,
           { categoriesCount: categoriesStore.categories.length }
         )
-      } catch (error) {
+      } catch (_error) {
         this.addResult('Categories Store', 'warning', '分类 Store 未初始化')
       }
 
@@ -172,7 +172,7 @@ export class IntegrationTester {
           `标签数据: ${tagsStore.tags.length} 个标签`,
           { tagsCount: tagsStore.tags.length }
         )
-      } catch (error) {
+      } catch (_error) {
         this.addResult('Tags Store', 'warning', '标签 Store 未初始化')
       }
 
@@ -197,7 +197,7 @@ export class IntegrationTester {
             hasSeoConfig: !!siteConfigStore.seoConfig
           }
         )
-      } catch (error) {
+      } catch (_error) {
         this.addResult('Site Config Store', 'warning', '网站配置 Store 未初始化')
       }
     } catch (error) {

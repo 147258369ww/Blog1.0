@@ -1,4 +1,5 @@
 const categoryRepository = require('../repositories/categoryRepository');
+const cacheService = require('./cacheService');
 const logger = require('../utils/logger');
 
 class CategoryService {
@@ -33,6 +34,8 @@ class CategoryService {
       });
 
       logger.info(`Category created: ${category.id}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORIES}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}*`);
       return category;
     } catch (error) {
       logger.error('Error creating category:', error);
@@ -93,6 +96,8 @@ class CategoryService {
       const updatedCategory = await categoryRepository.update(categoryId, updateData);
 
       logger.info(`Category updated: ${categoryId}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORIES}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}*`);
       return updatedCategory;
     } catch (error) {
       logger.error('Error updating category:', error);
@@ -127,6 +132,8 @@ class CategoryService {
       await categoryRepository.delete(categoryId);
 
       logger.info(`Category deleted: ${categoryId}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORIES}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}*`);
       return { message: '分类已删除' };
     } catch (error) {
       logger.error('Error deleting category:', error);
@@ -175,7 +182,10 @@ class CategoryService {
    */
   async getCategories(filters = {}, options = {}) {
     try {
-      const categories = await categoryRepository.findAll(filters, options);
+      const key = `${cacheService.KEY_PREFIXES.CATEGORIES}list`;
+      const categories = await cacheService.getOrSet(key, async () => {
+        return await categoryRepository.findAll(filters, options);
+      }, 300);
       
       // 转换字段名以匹配前端期望的格式，并获取文章数量
       const result = await Promise.all(
@@ -223,6 +233,10 @@ class CategoryService {
    */
   async getCategoryTree() {
     try {
+      const cached = await cacheService.get(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}all`);
+      if (cached) {
+        return cached;
+      }
       const topLevelCategories = await this.getTopLevelCategories({ includeChildren: true });
       
       // 递归构建完整的树结构
@@ -255,6 +269,7 @@ class CategoryService {
       };
 
       const tree = await buildTree(topLevelCategories);
+      await cacheService.set(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}all`, tree, 600);
       return tree;
     } catch (error) {
       logger.error('Error getting category tree:', error);
@@ -288,14 +303,22 @@ class CategoryService {
 
       // 获取分类下的文章
       const postRepository = require('../repositories/postRepository');
-      const result = await postRepository.findAll(
-        {
-          categoryId,
-          status: 'published', // 只返回已发布的文章
-        },
-        pagination,
-        { includeDeleted: false }
+      const { page = 1, limit = 10, sortBy = 'published_at', sortOrder = 'DESC' } = pagination;
+      const key = cacheService.generateKey(
+        cacheService.KEY_PREFIXES.CATEGORY,
+        categoryId,
+        `posts:page:${page}:limit:${limit}:sortBy:${sortBy}:sortOrder:${sortOrder}`
       );
+      const result = await cacheService.getOrSet(key, async () => {
+        return await postRepository.findAll(
+          {
+            categoryId,
+            status: 'published',
+          },
+          { page, limit, sortBy, sortOrder },
+          { includeDeleted: false }
+        );
+      }, 120);
 
       return result;
     } catch (error) {
@@ -317,6 +340,8 @@ class CategoryService {
       await Promise.all(updatePromises);
 
       logger.info(`Updated sort order for ${sortData.length} categories`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORIES}*`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.CATEGORY_TREE}*`);
       return { updated: sortData.length };
     } catch (error) {
       logger.error('Error updating category sort:', error);

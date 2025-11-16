@@ -103,7 +103,7 @@ class PostController {
       const viewCount = await postService.getPostViewCount(id);
       
       // 将实时浏览量添加到响应中
-      const postData = post.toJSON();
+      const postData = typeof post.toJSON === 'function' ? post.toJSON() : post;
       postData.view_count = viewCount;
 
       res.status(200).json({

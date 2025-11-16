@@ -132,6 +132,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { usePostsStore } from '@/stores/posts'
@@ -193,7 +194,7 @@ const renderedContent = computed(() => {
       return marked.parse(post.value.content)
     }
   } catch (err) {
-    console.error('Failed to render content:', err)
+    errorHandler.log('Failed to render content', ErrorLevel.ERROR, { error: String(err) })
     return '<p>Failed to render content</p>'
   }
 })

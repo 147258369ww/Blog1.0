@@ -55,8 +55,8 @@ const config = {
     dialect: 'postgres',
     timezone: process.env.DB_TIMEZONE || '+08:00',
     pool: {
-      max: 5,
-      min: 0,
+      max: 20,
+      min: 5,
       acquire: 30000,
       idle: 10000,
     },

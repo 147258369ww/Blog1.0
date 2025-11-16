@@ -11,9 +11,9 @@
         </div>
         <div class="tag-detail-page__info">
           <div class="tag-detail-page__breadcrumb">
-            <router-link to="/tags" class="tag-detail-page__breadcrumb-link">
+            <RouterLink to="/tags" class="tag-detail-page__breadcrumb-link">
               标签
-            </router-link>
+            </RouterLink>
             <span class="tag-detail-page__breadcrumb-separator">/</span>
             <span class="tag-detail-page__breadcrumb-current">
               {{ tagName }}

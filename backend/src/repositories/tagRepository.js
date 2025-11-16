@@ -81,7 +81,11 @@ class TagRepository {
       ],
       where,
       group: ['Tag.id'],
-      order: [[sortBy, sortOrder]],
+      order: [
+        sortBy === 'postCount'
+          ? [sequelize.literal('"postCount"'), sortOrder]
+          : [sortBy, sortOrder]
+      ],
       subQuery: false,
     };
 
@@ -198,7 +202,7 @@ class TagRepository {
         },
       ],
       group: ['Tag.id'],
-      order: [[sequelize.literal('postCount'), 'DESC']],
+      order: [[sequelize.literal('"postCount"'), 'DESC']],
       limit: parseInt(limit),
       subQuery: false,
     });

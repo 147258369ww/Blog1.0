@@ -2,13 +2,13 @@
   <article :class="cardClasses">
     <!-- Cover Image -->
     <div v-if="post.coverImage" class="post-card__image">
-      <router-link :to="`/posts/${post.id}`">
+      <RouterLink :to="`/posts/${post.id}`">
         <img 
           :src="coverImageUrl" 
           :alt="post.title"
           @error="handleImageError"
         />
-      </router-link>
+      </RouterLink>
     </div>
 
     <!-- Content -->
@@ -20,9 +20,9 @@
 
       <!-- Title -->
       <h3 class="post-card__title">
-        <router-link :to="`/posts/${post.id}`">
+        <RouterLink :to="`/posts/${post.id}`">
           {{ post.title }}
-        </router-link>
+        </RouterLink>
       </h3>
 
       <!-- Excerpt -->

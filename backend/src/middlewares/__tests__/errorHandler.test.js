@@ -200,8 +200,7 @@ describe('Error Handler Middleware', () => {
       expect(res.json).toHaveBeenCalledWith({
         success: false,
         error: {
-          code: 'Error',
-          message: '服务器内部错误',
+          code: 'INTERNAL_SERVER_ERROR',
         },
       });
 

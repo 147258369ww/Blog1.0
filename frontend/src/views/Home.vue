@@ -107,6 +107,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { usePostsStore } from '@/stores/posts'
 import { useMeta } from '@/composables/useMeta'
 import BlogPostCard from '@/components/blog/BlogPostCard.vue'
@@ -161,7 +162,7 @@ const handlePageChange = async (page: number) => {
       allPostsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   } catch (err) {
-    console.error('Failed to load page:', err)
+    errorHandler.log('Failed to load page', ErrorLevel.ERROR, { error: String(err) })
   }
 }
 
@@ -170,7 +171,7 @@ onMounted(async () => {
     // Fetch first page of posts
     await postsStore.fetchPosts({ page: 1, pageSize: 10 })
   } catch (err) {
-    console.error('Failed to load posts:', err)
+    errorHandler.log('Failed to load posts', ErrorLevel.ERROR, { error: String(err) })
   }
 })
 </script>

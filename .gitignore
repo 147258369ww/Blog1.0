@@ -140,6 +140,7 @@ temp/
 # Documentation
 docs/
 IFLOW.md
+backend-optimization.md
 
 # VSCode settings
 .vscode/

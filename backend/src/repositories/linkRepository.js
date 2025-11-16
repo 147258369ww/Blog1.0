@@ -1,5 +1,4 @@
 const { Link } = require('../models');
-const { Op } = require('sequelize');
 
 class LinkRepository {
   /**

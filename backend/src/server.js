@@ -67,6 +67,17 @@ const startServer = async () => {
     // 初始化 Redis 连接
     await connectRedisWithRetry();
 
+    try {
+      const postService = require('./services/postService');
+      const categoryService = require('./services/categoryService');
+      const tagService = require('./services/tagService');
+      Promise.all([
+        postService.getPublishedPosts({}, { page: 1, limit: 10, sortBy: 'published_at', sortOrder: 'DESC' }),
+        categoryService.getCategoryTree(),
+        tagService.getPopularTags(10),
+      ]).catch(() => {});
+    } catch (_) {}
+
     // 创建并启动 HTTP/HTTPS 服务器
     logger.info('🌐 正在启动 Web 服务器...');
     const { server: httpServer, protocol } = createServer();

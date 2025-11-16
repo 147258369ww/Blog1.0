@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { useRouter, useRoute } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
 import { categoriesApi } from '@/services/api/categories'
@@ -156,7 +157,7 @@ const fetchPosts = async (page = 1) => {
       tagId: selectedTagId.value || undefined
     })
   } catch (error) {
-    console.error('Failed to fetch posts:', error)
+    errorHandler.log('Failed to fetch posts', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 
@@ -166,7 +167,7 @@ const fetchCategories = async () => {
     const response = await categoriesApi.getCategories()
     categories.value = response.data
   } catch (error) {
-    console.error('Failed to fetch categories:', error)
+    errorHandler.log('Failed to fetch categories', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 
@@ -176,7 +177,7 @@ const fetchTags = async () => {
     const response = await tagsApi.getTags()
     tags.value = response.data
   } catch (error) {
-    console.error('Failed to fetch tags:', error)
+    errorHandler.log('Failed to fetch tags', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 
@@ -190,7 +191,7 @@ const fetchPopularPosts = async () => {
     // Store popular posts separately (top 5 by view count would be ideal)
     popularPosts.value = postsStore.posts.slice(0, 5)
   } catch (error) {
-    console.error('Failed to fetch popular posts:', error)
+    errorHandler.log('Failed to fetch popular posts', ErrorLevel.ERROR, { error: String(error) })
   }
 }
 

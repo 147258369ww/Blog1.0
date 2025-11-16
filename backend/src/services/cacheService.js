@@ -15,6 +15,14 @@ class CacheService {
       POST_VIEW_LOCK: 'post_view_lock:',   // 文章浏览防重复锁
       CONFIG: 'config:',                   // 系统配置
       USER_SESSION: 'user_session:',       // 用户会话
+      POST: 'post:',
+      POSTS_PAGE: 'posts:page:',
+      CATEGORY: 'category:',
+      CATEGORIES: 'categories:',
+      CATEGORY_TREE: 'category_tree:',
+      TAG: 'tag:',
+      TAGS: 'tags:',
+      TAG_POPULAR: 'tag_popular:'
     };
   }
 
@@ -101,6 +109,16 @@ class CacheService {
     }
   }
 
+  async getOrSet(key, fetchFn, ttl = 3600) {
+    const cached = await this.get(key);
+    if (cached !== null) {
+      return cached;
+    }
+    const data = await fetchFn();
+    await this.set(key, data, ttl);
+    return data;
+  }
+
   /**
    * 删除缓存
    * @param {string} key - 缓存键
@@ -148,6 +166,10 @@ class CacheService {
       logger.error(`Cache delete pattern error for ${pattern}:`, error);
       return 0;
     }
+  }
+
+  async invalidatePattern(pattern) {
+    return await this.deletePattern(pattern);
   }
 
   /**

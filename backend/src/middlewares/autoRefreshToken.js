@@ -1,4 +1,4 @@
-const { shouldRefreshToken, verifyAccessToken } = require('../config/jwt');
+const { shouldRefreshToken } = require('../config/jwt');
 const authService = require('../services/authService');
 const logger = require('../utils/logger');
 

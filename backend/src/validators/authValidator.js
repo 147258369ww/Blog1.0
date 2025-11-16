@@ -98,10 +98,6 @@ const changePasswordValidation = [
     .trim()
     .notEmpty()
     .withMessage('New password is required')
-    .isLength({ min: 8 })
-    .withMessage('New password must be at least 8 characters')
-    .matches(/^(?=.*[A-Za-z])(?=.*\d)/)
-    .withMessage('New password must contain at least one letter and one number')
     .custom((value, { req }) => {
       if (value === req.body.oldPassword) {
         throw new Error('New password must be different from old password');

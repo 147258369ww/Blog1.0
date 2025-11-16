@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "preview:https": "vite preview --mode production --port 5173 --host",
     "start": "vite preview --port 5173 --host",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "format": "prettier --write src/",
     "verify": "node scripts/verify-integration.js",
     "test:integration": "vite build && node scripts/verify-integration.js"

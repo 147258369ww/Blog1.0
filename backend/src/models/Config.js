@@ -54,7 +54,7 @@ module.exports = (sequelize) => {
       case 'json':
         try {
           return JSON.parse(this.value);
-        } catch (e) {
+        } catch (_e) {
           return null;
         }
       default:

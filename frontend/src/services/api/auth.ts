@@ -1,13 +1,7 @@
 // 认证 API 服务
 
 import { http } from '../http'
-import type {
-  ApiResponse,
-  RegisterRequest,
-  LoginRequest,
-  AuthResponse,
-  User
-} from '@/types'
+import type { ApiResponse, RegisterRequest, LoginRequest, AuthResponse, User } from '@/types'
 
 /**
  * 认证相关 API 服务
@@ -25,7 +19,7 @@ export const authApi = {
    * 验证注册码并完成注册
    * POST /api/v1/auth/verify
    */
-  register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
+  register(data: RegisterRequest): Promise<ApiResponse<{ user: User }>> {
     return http.post('/auth/verify', data)
   },
 

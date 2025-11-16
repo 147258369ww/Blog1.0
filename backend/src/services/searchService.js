@@ -1,5 +1,6 @@
 const { Post, User, Category, Tag } = require('../models');
 const { Op, literal } = require('sequelize');
+const cacheService = require('./cacheService');
 
 class SearchService {
   /**
@@ -79,17 +80,19 @@ class SearchService {
     };
 
     try {
-      const { count, rows } = await Post.findAndCountAll(queryOptions);
-
-      return {
-        posts: rows,
-        total: count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(count / parseInt(limit)),
-      };
+      const key = `search:posts:${Buffer.from(cleanKeyword).toString('base64')}:page:${page}:limit:${limit}`;
+      const data = await cacheService.getOrSet(key, async () => {
+        const { count, rows } = await Post.findAndCountAll(queryOptions);
+        return {
+          posts: rows,
+          total: count,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(count / parseInt(limit)),
+        };
+      }, 60);
+      return data;
     } catch (error) {
-      // 如果全文搜索失败，降级到 ILIKE 搜索
       console.error('Full-text search failed, falling back to ILIKE:', error.message);
       return this.searchPostsFallback(keyword, pagination);
     }

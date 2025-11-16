@@ -1,6 +1,7 @@
 const postRepository = require('../repositories/postRepository');
 const { Category, Tag } = require('../models');
 const { redisClient } = require('../config/redis');
+const cacheService = require('./cacheService');
 const logger = require('../utils/logger');
 
 class PostService {
@@ -84,6 +85,9 @@ class PostService {
       const createdPost = await postRepository.findById(post.id);
       
       logger.info(`Post created: ${post.id} by user ${authorId}`);
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.POSTS_PAGE}*`);
+      await cacheService.deletePattern('category:*:posts:*');
+      await cacheService.deletePattern('tag:*:posts:*');
       return createdPost;
     } catch (error) {
       logger.error('Error creating post:', error);
@@ -160,6 +164,10 @@ class PostService {
       const updatedPost = await postRepository.findById(postId);
       
       logger.info(`Post updated: ${postId} by user ${userId}`);
+      await cacheService.delete(cacheService.generateKey(cacheService.KEY_PREFIXES.POST, postId));
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.POSTS_PAGE}*`);
+      await cacheService.deletePattern('category:*:posts:*');
+      await cacheService.deletePattern('tag:*:posts:*');
       return updatedPost;
     } catch (error) {
       logger.error('Error updating post:', error);
@@ -180,6 +188,10 @@ class PostService {
       await postRepository.delete(postId);
       
       logger.info(`Post deleted: ${postId} by user ${userId}`);
+      await cacheService.delete(cacheService.generateKey(cacheService.KEY_PREFIXES.POST, postId));
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.POSTS_PAGE}*`);
+      await cacheService.deletePattern('category:*:posts:*');
+      await cacheService.deletePattern('tag:*:posts:*');
       return { message: '文章已删除' };
     } catch (error) {
       logger.error('Error deleting post:', error);
@@ -192,13 +204,15 @@ class PostService {
    */
   async getPublishedPost(postId) {
     try {
-      const post = await postRepository.findById(postId);
-      
-      if (!post || post.status !== 'published') {
-        throw new Error('文章不存在或未发布');
-      }
-
-      return post;
+      const key = cacheService.generateKey(cacheService.KEY_PREFIXES.POST, postId);
+      const data = await cacheService.getOrSet(key, async () => {
+        const post = await postRepository.findById(postId);
+        if (!post || post.status !== 'published') {
+          throw new Error('文章不存在或未发布');
+        }
+        return post;
+      }, 300);
+      return data;
     } catch (error) {
       logger.error('Error getting published post:', error);
       throw error;
@@ -234,9 +248,13 @@ class PostService {
         status: 'published',
       };
 
-      const result = await postRepository.findAll(publicFilters, pagination, { includeDeleted: false });
-      
-      return result;
+      const keyBase = `${cacheService.KEY_PREFIXES.POSTS_PAGE}${pagination.page || 1}:limit:${pagination.limit || 10}:sortBy:${pagination.sortBy || 'published_at'}:sortOrder:${pagination.sortOrder || 'DESC'}`;
+      const filtersHash = Buffer.from(JSON.stringify(publicFilters)).toString('base64');
+      const key = `${keyBase}:filters:${filtersHash}`;
+      const data = await cacheService.getOrSet(key, async () => {
+        return await postRepository.findAll(publicFilters, pagination, { includeDeleted: false });
+      }, 120);
+      return data;
     } catch (error) {
       logger.error('Error getting published posts:', error);
       throw error;
@@ -269,6 +287,10 @@ class PostService {
       }
 
       logger.info(`Post restored: ${postId} by user ${userId}`);
+      await cacheService.delete(cacheService.generateKey(cacheService.KEY_PREFIXES.POST, postId));
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.POSTS_PAGE}*`);
+      await cacheService.deletePattern('category:*:posts:*');
+      await cacheService.deletePattern('tag:*:posts:*');
       return post;
     } catch (error) {
       logger.error('Error restoring post:', error);
@@ -288,6 +310,10 @@ class PostService {
       }
 
       logger.info(`Post force deleted: ${postId} by user ${userId}`);
+      await cacheService.delete(cacheService.generateKey(cacheService.KEY_PREFIXES.POST, postId));
+      await cacheService.deletePattern(`${cacheService.KEY_PREFIXES.POSTS_PAGE}*`);
+      await cacheService.deletePattern('category:*:posts:*');
+      await cacheService.deletePattern('tag:*:posts:*');
       return { message: '文章已永久删除' };
     } catch (error) {
       logger.error('Error force deleting post:', error);

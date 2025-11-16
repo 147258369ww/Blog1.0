@@ -35,7 +35,7 @@
 
     <!-- Categories Grid -->
     <div v-else class="categories-page__grid">
-      <router-link
+      <RouterLink
         v-for="category in categories"
         :key="category.id"
         :to="`/categories/${category.id}`"
@@ -61,7 +61,7 @@
             </span>
           </div>
         </div>
-      </router-link>
+      </RouterLink>
     </div>
   </div>
 </template>

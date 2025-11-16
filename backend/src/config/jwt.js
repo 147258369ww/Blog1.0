@@ -18,8 +18,11 @@ function generateAccessToken(payload) {
  * @returns {string} JWT refresh token
  */
 function generateRefreshToken(payload) {
+  const { randomUUID, randomBytes } = require('crypto');
+  const jwtid = typeof randomUUID === 'function' ? randomUUID() : randomBytes(16).toString('hex');
   return jwt.sign(payload, config.jwt.refreshSecret, {
     expiresIn: config.jwt.refreshTokenExpiry,
+    jwtid,
   });
 }
 

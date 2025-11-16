@@ -1,7 +1,7 @@
 const { Post, Tag } = require('../models');
 const { redisClient } = require('../config/redis');
+const cacheService = require('./cacheService');
 const logger = require('../utils/logger');
-const { Op } = require('sequelize');
 
 class StatsService {
   /**
@@ -10,26 +10,19 @@ class StatsService {
    */
   async getBlogStats() {
     try {
-      // 获取已发布文章总数（不包括软删除的）
-      const totalPosts = await Post.count({
-        where: {
-          status: 'published',
-        },
-      });
-
-      // 获取标签总数
-      const totalTags = await Tag.count();
-
-      // 获取总访问量（数据库 + Redis）
-      const totalViews = await this.getTotalViewCount();
-
+      const key = 'stats:blog';
+      const data = await cacheService.getOrSet(key, async () => {
+        const totalPosts = await Post.count({
+          where: {
+            status: 'published',
+          },
+        });
+        const totalTags = await Tag.count();
+        const totalViews = await this.getTotalViewCount();
+        return { totalPosts, totalTags, totalViews };
+      }, 60);
       logger.debug('Blog stats retrieved successfully');
-      
-      return {
-        totalPosts,
-        totalTags,
-        totalViews,
-      };
+      return data;
     } catch (error) {
       logger.error('Error getting blog stats:', error);
       throw error;
@@ -84,26 +77,27 @@ class StatsService {
    */
   async getPostStats() {
     try {
-      const stats = await Post.findAll({
-        attributes: [
-          'status',
-          [Post.sequelize.fn('COUNT', Post.sequelize.col('id')), 'count'],
-        ],
-        group: ['status'],
-        raw: true,
-      });
-
-      const result = {
-        draft: 0,
-        published: 0,
-        archived: 0,
-      };
-
-      stats.forEach(stat => {
-        result[stat.status] = parseInt(stat.count);
-      });
-
-      return result;
+      const key = 'stats:posts';
+      const data = await cacheService.getOrSet(key, async () => {
+        const stats = await Post.findAll({
+          attributes: [
+            'status',
+            [Post.sequelize.fn('COUNT', Post.sequelize.col('id')), 'count'],
+          ],
+          group: ['status'],
+          raw: true,
+        });
+        const result = {
+          draft: 0,
+          published: 0,
+          archived: 0,
+        };
+        stats.forEach(stat => {
+          result[stat.status] = parseInt(stat.count);
+        });
+        return result;
+      }, 60);
+      return data;
     } catch (error) {
       logger.error('Error getting post stats:', error);
       throw error;

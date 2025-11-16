@@ -1,11 +1,10 @@
 const logger = require('../utils/logger');
-const { AppError } = require('../utils/errors');
 
 /**
  * Error handler middleware
  * Catches all errors and formats them into a consistent response
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log error
   logger.error(`${err.name}: ${err.message}`, {
     method: req.method,
@@ -99,6 +98,11 @@ const errorHandler = (err, req, res, next) => {
   // Add stack trace in development (but not in test)
   if (process.env.NODE_ENV === 'development' && err.stack) {
     response.error.stack = err.stack;
+  }
+
+  // Minimize error payload in production for server errors
+  if (process.env.NODE_ENV === 'production' && statusCode >= 500) {
+    response.error = { code: 'INTERNAL_SERVER_ERROR' };
   }
 
   res.status(statusCode).json(response);
