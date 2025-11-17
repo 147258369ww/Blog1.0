@@ -215,6 +215,10 @@ const options = {
         description: '统计相关接口（公开）',
       },
       {
+        name: 'Intent',
+        description: '用户动机与问候接口',
+      },
+      {
         name: 'Admin - Posts',
         description: '文章管理接口（管理员）',
       },

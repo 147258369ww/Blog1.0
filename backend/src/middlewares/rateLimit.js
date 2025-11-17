@@ -236,6 +236,45 @@ class RateLimitMiddleware {
       message: 'API请求过于频繁',
     });
   }
+
+  static intentQuota() {
+    return async (req, res, next) => {
+      try {
+        const client = getRedisClient();
+        const ip = req.ip;
+
+        const minuteKey = `intent_minute:${ip}`;
+        const now = Date.now();
+        const windowStart = now - 60000;
+        const requests = await client.lRange(minuteKey, 0, -1);
+        const validRequests = requests.map((t) => parseInt(t)).filter((t) => t > windowStart);
+        if (validRequests.length >= 10) {
+          const retryAfter = Math.ceil((validRequests[0] + 60000 - now) / 1000);
+          return res.status(429).json({
+            success: false,
+            error: { code: 'INTENT_RATE_LIMIT', message: '意图接口请求过于频繁', retryAfter },
+          });
+        }
+        await client.lPush(minuteKey, now.toString());
+        await client.expire(minuteKey, 60);
+        await client.lTrim(minuteKey, 0, 9);
+
+        const dayKey = `intent_day:${ip}`;
+        const dayCount = await client.incr(dayKey);
+        const ttl = await client.ttl(dayKey);
+        if (ttl < 0) {
+          await client.expire(dayKey, 86400);
+        }
+        if (dayCount > 1000) {
+          req.intentDailyExceeded = true;
+        }
+
+        next();
+      } catch (error) {
+        next();
+      }
+    };
+  }
 }
 
 module.exports = RateLimitMiddleware;

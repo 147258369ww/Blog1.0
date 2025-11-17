@@ -7,6 +7,7 @@ import Loading from '@/components/common/Loading.vue'
 import ErrorBoundary from '@/components/common/ErrorBoundary.vue'
 import NetworkStatus from '@/components/common/NetworkStatus.vue'
 import LoadingScreen from '@/components/common/LoadingScreen.vue'
+import ToastContainer from '@/components/common/ToastContainer.vue'
 
 /**
  * 主应用组件
@@ -25,9 +26,11 @@ import LoadingScreen from '@/components/common/LoadingScreen.vue'
   <div id="app">
     <!-- 首次加载屏幕 -->
     <LoadingScreen />
-    
+
     <!-- 网络状态指示器 -->
     <NetworkStatus />
+
+    <ToastContainer />
     
     <!-- 全局错误边界 -->
     <ErrorBoundary>
