@@ -30,14 +30,32 @@ runWhenIdle(() => {
 
 runWhenIdle(async () => {
   try {
-    const shown = sessionStorage.getItem('intent_shown')
-    if (shown) return
-    // 先标记已展示，避免并发或重复触发
-    sessionStorage.setItem('intent_shown', '1')
-    const res = await intentApi.greeting()
-    const data = (res as any)?.data ?? res
-    const msg = (data && (data.message || data.data?.message)) || '欢迎访问！'
+    const key = 'intent_greeting_cache'
+    const raw = localStorage.getItem(key)
+    const now = Date.now()
+    const ttl = 600 * 1000
+    let msg: string | null = null
+    if (raw) {
+      try {
+        const cached = JSON.parse(raw)
+        if (cached && typeof cached.message === 'string' && typeof cached.ts === 'number') {
+          if (now - cached.ts < ttl) {
+            msg = cached.message
+          }
+        }
+      } catch {}
+    }
+    if (!msg) {
+      const res = await intentApi.greeting()
+      const data = (res as any)?.data ?? res
+      msg = (data && (data.message || data.data?.message)) || '欢迎访问！'
+      try {
+        const intent = (data && (data.intent || data.data?.intent)) || null
+        localStorage.setItem(key, JSON.stringify({ message: msg, intent, ts: now }))
+      } catch {}
+    }
     const toast = useToast()
-    toast.info(msg, 5000)
+    const finalMsg = msg || '欢迎访问！'
+    toast.info(finalMsg, 5000)
   } catch (_) {}
 })

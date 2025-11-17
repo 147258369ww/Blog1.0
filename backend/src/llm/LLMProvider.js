@@ -5,7 +5,7 @@ class LLMProvider {
     this.config = config;
   }
 
-  async infer(prompt, options = {}) {
+  async infer(prompt, _options = {}) {
     throw new Error('Not implemented');
   }
 }
