@@ -160,7 +160,11 @@ class HttpClient {
 
         // 实现统一错误处理和 Toast 通知
         const message = this.getErrorMessage(error)
-        toast.error(message)
+        if (error.response?.status === 429) {
+          toast.warning(message, 5000)
+        } else {
+          toast.error(message)
+        }
 
         return Promise.reject(error)
       }
@@ -198,11 +202,45 @@ class HttpClient {
    */
   private getErrorMessage(error: AxiosError): string {
     if (error.response) {
-      // 服务器返回错误
       const prod = import.meta.env.PROD
       const data = error.response.data as { error?: { message?: string } }
       if (error.response.status === 429) {
-        return '请求过于频繁，请稍后再试'
+        const headers = error.response.headers || {}
+        const retryAfter = (headers['retry-after'] as string | undefined) || undefined
+        let waitSeconds = 0
+        if (retryAfter) {
+          const n = Number(retryAfter)
+          if (!Number.isNaN(n)) {
+            waitSeconds = Math.max(0, Math.round(n))
+          } else {
+            const target = Date.parse(retryAfter)
+            if (!Number.isNaN(target)) {
+              waitSeconds = Math.max(0, Math.round((target - Date.now()) / 1000))
+            }
+          }
+        }
+        if (!waitSeconds) {
+          const resetHeader = headers['x-ratelimit-reset'] as string | undefined
+          if (resetHeader) {
+            const reset = Number(resetHeader)
+            if (!Number.isNaN(reset)) {
+              const resetMs = reset > 10000000000 ? reset : reset * 1000
+              const delta = resetMs - Date.now()
+              waitSeconds = Math.max(0, Math.round(delta / 1000))
+            }
+          }
+        }
+        if (!waitSeconds) {
+          const body = error.response.data as any
+          const bodyWait = body?.retryAfter ?? body?.data?.retryAfter ?? body?.waitSeconds
+          if (typeof bodyWait === 'number') {
+            waitSeconds = Math.max(0, Math.round(bodyWait))
+          }
+        }
+        if (!waitSeconds) {
+          waitSeconds = 30
+        }
+        return `请求过于频繁，请在 ${waitSeconds} 秒后再试`
       }
       if (prod) {
         return '请求失败，请稍后重试'

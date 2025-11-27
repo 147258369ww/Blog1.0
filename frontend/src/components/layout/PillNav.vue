@@ -46,6 +46,7 @@ const props = withDefaults(defineProps<PillNavProps>(), {
     { label: '文章', path: '/posts' },
     { label: '分类', path: '/categories' },
     { label: '标签', path: '/tags' },
+    { label: '作品集', path: '/portfolio' },
     { label: '关于', path: '/about' }
   ]
 })

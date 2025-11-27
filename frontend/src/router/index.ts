@@ -72,6 +72,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: () => import(/* webpackChunkName: "portfolio" */ '@/views/Portfolio.vue'),
+    meta: {
+      title: '作品集',
+      description: '创意作品集页面，包含首屏动画与精选作品展示',
+      keywords: ['作品集', '项目', 'Selected Works']
+    }
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import(/* webpackChunkName: "about" */ '@/views/About.vue'),

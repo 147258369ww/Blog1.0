@@ -4,6 +4,21 @@ const cacheService = require('./cacheService');
 const logger = require('../utils/logger');
 
 class StatsService {
+  async withRetry(fn, retries = 3, baseDelayMs = 200) {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        const msg = String(error?.message || '');
+        const isTransient = msg.includes('ECONNRESET') || error?.name === 'SequelizeConnectionError';
+        if (!isTransient || attempt === retries - 1) {
+          throw error;
+        }
+        const wait = baseDelayMs * (attempt + 1);
+        await new Promise(r => setTimeout(r, wait));
+      }
+    }
+  }
   /**
    * 获取博客整体统计数据
    * 包括文章总数、标签总数、总访问量
@@ -12,12 +27,10 @@ class StatsService {
     try {
       const key = 'stats:blog';
       const data = await cacheService.getOrSet(key, async () => {
-        const totalPosts = await Post.count({
-          where: {
-            status: 'published',
-          },
-        });
-        const totalTags = await Tag.count();
+        const totalPosts = await this.withRetry(() => Post.count({
+          where: { status: 'published' },
+        }));
+        const totalTags = await this.withRetry(() => Tag.count());
         const totalViews = await this.getTotalViewCount();
         return { totalPosts, totalTags, totalViews };
       }, 60);
@@ -36,22 +49,19 @@ class StatsService {
   async getTotalViewCount() {
     try {
       // 获取数据库中所有文章的浏览量总和
-      const dbViewCount = await Post.sum('view_count', {
-        where: {
-          status: 'published',
-        },
-      }) || 0;
+      const dbViewCount = (await this.withRetry(() => Post.sum('view_count', {
+        where: { status: 'published' },
+      }))) || 0;
 
       // 获取 Redis 中缓存的浏览量
       let redisViewCount = 0;
       try {
-        const keys = await redisClient.keys('post_views:*');
-        
+        const keys = await cacheService.keys(`${cacheService.KEY_PREFIXES.POST_VIEWS}*`);
         if (keys.length > 0) {
-          for (const key of keys) {
-            const count = await redisClient.get(key);
-            if (count) {
-              redisViewCount += parseInt(count);
+          const values = await cacheService.mget(keys);
+          for (const val of values) {
+            if (val) {
+              redisViewCount += parseInt(val);
             }
           }
         }

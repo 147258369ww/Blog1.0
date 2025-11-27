@@ -100,6 +100,9 @@
               <router-link to="/tags" class="mobile-menu__link" @click="closeMobileMenu">标签</router-link>
             </li>
             <li class="mobile-menu__item">
+              <router-link to="/portfolio" class="mobile-menu__link" @click="closeMobileMenu">作品集</router-link>
+            </li>
+            <li class="mobile-menu__item">
               <router-link to="/about" class="mobile-menu__link" @click="closeMobileMenu">关于</router-link>
             </li>
             
