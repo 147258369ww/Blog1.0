@@ -11,6 +11,10 @@ class PostService {
   async createPost(postData, authorId) {
     try {
       let { title, slug, summary, content, cover_image, category_id, status, is_featured, allow_comments, tag_ids } = postData;
+      const { sanitizeHtml, sanitizeText } = require('../utils/sanitize');
+      title = sanitizeText(title);
+      summary = summary !== undefined ? sanitizeText(summary) : summary;
+      content = sanitizeHtml(content);
 
       // 如果没有提供 slug，自动生成
       if (!slug) {
@@ -100,6 +104,7 @@ class PostService {
    */
   async updatePost(postId, postData, userId) {
     try {
+      const { sanitizeHtml, sanitizeText } = require('../utils/sanitize');
       const { title, slug, summary, content, cover_image, category_id, status, is_featured, allow_comments, tag_ids } = postData;
 
       // 查找文章
@@ -136,10 +141,10 @@ class PostService {
 
       // 准备更新数据
       const updateData = {};
-      if (title !== undefined) updateData.title = title;
+      if (title !== undefined) updateData.title = sanitizeText(title);
       if (slug !== undefined) updateData.slug = slug;
-      if (summary !== undefined) updateData.summary = summary;
-      if (content !== undefined) updateData.content = content;
+      if (summary !== undefined) updateData.summary = sanitizeText(summary);
+      if (content !== undefined) updateData.content = sanitizeHtml(content);
       if (cover_image !== undefined) updateData.cover_image = cover_image;
       if (category_id !== undefined) updateData.category_id = category_id;
       if (status !== undefined) {

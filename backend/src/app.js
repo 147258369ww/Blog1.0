@@ -3,12 +3,14 @@ const cors = require('cors');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const compression = require('compression');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const swaggerSpec = require('./config/swagger');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
 const ipLogger = require('./middlewares/ipLogger');
+const autoRefreshToken = require('./middlewares/autoRefreshToken');
 
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
@@ -34,6 +36,16 @@ app.use(
   })
 );
 
+app.use(
+  helmet({
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
+
 // Morgan 日志中间件，使用自定义IP格式
 app.use(morgan(':client-ip - :method :url :status :response-time ms', { stream: logger.stream }));
 
@@ -43,6 +55,8 @@ app.use(ipLogger);
 // 解析 JSON 请求体（增加大小限制以支持大文件上传）
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+app.use(autoRefreshToken);
 
 app.use(
   compression({

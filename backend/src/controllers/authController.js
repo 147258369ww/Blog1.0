@@ -138,6 +138,8 @@ class AuthController {
       }
 
       const result = await authService.login(email, password);
+      const AuditLogger = require('../utils/audit');
+      AuditLogger.log('auth:login', result.user.id, { email: result.user.email });
 
       res.status(200).json({
         success: true,
@@ -202,6 +204,8 @@ class AuthController {
         });
       }
 
+      const AuditLogger = require('../utils/audit');
+      AuditLogger.log('auth:admin_login', result.user.id, { email: result.user.email });
       res.status(200).json({
         success: true,
         data: result,
@@ -252,6 +256,9 @@ class AuthController {
       }
 
       const result = await authService.refreshToken(refreshToken);
+      const AuditLogger = require('../utils/audit');
+      const uid = req.user?.id || null;
+      AuditLogger.log('auth:refresh', uid, { rotated: !!result.refreshToken });
 
       res.status(200).json({
         success: true,
@@ -293,7 +300,18 @@ class AuthController {
       // req.user 由认证中间件设置
       const userId = req.user.id;
 
-      await authService.logout(userId);
+      const authHeader = req.headers.authorization;
+      let accessToken = null;
+      if (authHeader) {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+          accessToken = parts[1];
+        }
+      }
+
+      await authService.logout(userId, accessToken);
+      const AuditLogger = require('../utils/audit');
+      AuditLogger.log('auth:logout', userId, {});
 
       res.status(200).json({
         success: true,
@@ -328,6 +346,8 @@ class AuthController {
       }
 
       await authService.changePassword(userId, oldPassword, newPassword);
+      const AuditLogger = require('../utils/audit');
+      AuditLogger.log('auth:change_password', userId, {});
 
       res.status(200).json({
         success: true,

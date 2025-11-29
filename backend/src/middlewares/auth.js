@@ -1,4 +1,5 @@
 const { verifyAccessToken } = require('../config/jwt');
+const tokenBlacklist = require('../services/tokenBlacklist');
 
 /**
  * Authentication middleware
@@ -32,6 +33,17 @@ function authenticate(req, res, next) {
     }
 
     const token = parts[1];
+
+    const revoked = tokenBlacklist.isBlacklistedSync(token);
+    if (revoked) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'TOKEN_REVOKED',
+          message: '令牌已被撤销',
+        },
+      });
+    }
 
     // Verify token
     const decoded = verifyAccessToken(token);

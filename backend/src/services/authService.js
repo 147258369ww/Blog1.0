@@ -1,7 +1,8 @@
 const { User } = require('../models');
 const emailService = require('./emailService');
 const { redisClient } = require('../config/redis');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../config/jwt');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken, getTokenExpirationInfo } = require('../config/jwt');
+const tokenBlacklist = require('./tokenBlacklist');
 const logger = require('../utils/logger');
 
 /**
@@ -180,11 +181,22 @@ class AuthService {
 
       const newAccessToken = generateAccessToken(tokenPayload);
 
+      const info = getTokenExpirationInfo(refreshToken);
+      let rotatedRefreshToken = null;
+      const rotateThresholdSeconds = 24 * 60 * 60;
+      if (info && info.expiresIn > 0 && info.expiresIn <= rotateThresholdSeconds) {
+        rotatedRefreshToken = generateRefreshToken(tokenPayload);
+        const refreshTokenKey = `refresh_token:${user.id}`;
+        await redisClient.setEx(refreshTokenKey, 7 * 24 * 60 * 60, rotatedRefreshToken);
+      }
+
       logger.info(`Access token refreshed for user: ${user.email}`);
 
-      return {
-        accessToken: newAccessToken,
-      };
+      const result = { accessToken: newAccessToken };
+      if (rotatedRefreshToken) {
+        result.refreshToken = rotatedRefreshToken;
+      }
+      return result;
     } catch (error) {
       logger.error('Failed to refresh token:', error);
       throw error;
@@ -196,11 +208,17 @@ class AuthService {
    * @param {number} userId - 用户 ID
    * @returns {Promise<Object>} 登出结果
    */
-  async logout(userId) {
+  async logout(userId, accessToken) {
     try {
       // 从 Redis 中删除刷新令牌
       const refreshTokenKey = `refresh_token:${userId}`;
       await redisClient.del(refreshTokenKey);
+
+      if (accessToken) {
+        const info = getTokenExpirationInfo(accessToken);
+        const ttl = info && info.expiresIn ? info.expiresIn : 0;
+        await tokenBlacklist.add(accessToken, ttl);
+      }
 
       logger.info(`User logged out successfully: ${userId}`);
 
