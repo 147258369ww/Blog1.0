@@ -1,0 +1,205 @@
+// ============================================
+// 颜色系统 (Color System)
+// ============================================
+
+// 主题色 (Primary Colors)
+$primary-color: #409eff;
+$primary-light-1: #53a8ff;
+$primary-light-2: #66b1ff;
+$primary-light-3: #79bbff;
+$primary-light-4: #8cc5ff;
+$primary-light-5: #a0cfff;
+$primary-light-6: #b3d8ff;
+$primary-light-7: #c6e2ff;
+$primary-light-8: #d9ecff;
+$primary-light-9: #ecf5ff;
+$primary-dark-1: #337ecc;
+
+// 功能色 (Functional Colors)
+$success-color: #67c23a;
+$success-light: #e1f3d8;
+$success-dark: #529b2e;
+
+$warning-color: #e6a23c;
+$warning-light: #faecd8;
+$warning-dark: #b88230;
+
+$danger-color: #f56c6c;
+$danger-light: #fde2e2;
+$danger-dark: #c45656;
+
+$info-color: #909399;
+$info-light: #e9e9eb;
+$info-dark: #73767a;
+
+// 文本色 (Text Colors)
+$text-primary: #303133;
+$text-regular: #606266;
+$text-secondary: #909399;
+$text-placeholder: #c0c4cc;
+$text-disabled: #c0c4cc;
+
+// 边框色 (Border Colors)
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+$border-extra-light: #f2f6fc;
+
+// 背景色 (Background Colors)
+$background-base: #f5f7fa;
+$background-light: #fafafa;
+$background-white: #ffffff;
+$background-overlay: rgba(0, 0, 0, 0.5);
+$background-mask: rgba(0, 0, 0, 0.3);
+
+// ============================================
+// 断点系统 (Breakpoints)
+// ============================================
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1200px;
+$breakpoint-desktop: 1600px;
+
+// ============================================
+// 间距系统 (Spacing System)
+// ============================================
+$spacing-0: 0;
+$spacing-1: 4px;
+$spacing-2: 8px;
+$spacing-3: 12px;
+$spacing-4: 16px;
+$spacing-5: 20px;
+$spacing-6: 24px;
+$spacing-8: 32px;
+$spacing-10: 40px;
+$spacing-12: 48px;
+$spacing-16: 64px;
+
+// 别名 (Aliases)
+$spacing-xs: $spacing-1;
+$spacing-sm: $spacing-2;
+$spacing-md: $spacing-4;
+$spacing-lg: $spacing-6;
+$spacing-xl: $spacing-8;
+
+// ============================================
+// 圆角系统 (Border Radius)
+// ============================================
+$border-radius-none: 0;
+$border-radius-sm: 2px;
+$border-radius-base: 4px;
+$border-radius-md: 6px;
+$border-radius-lg: 8px;
+$border-radius-xl: 12px;
+$border-radius-full: 9999px;
+
+// ============================================
+// 阴影系统 (Shadow System)
+// ============================================
+$box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$box-shadow-base: 0 2px 12px rgba(0, 0, 0, 0.1);
+$box-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+$box-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+$box-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.2);
+
+// ============================================
+// 字体系统 (Typography)
+// ============================================
+
+// 字体族 (Font Family)
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+  'Noto Color Emoji';
+$font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+
+// 字体大小 (Font Size)
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 30px;
+$font-size-4xl: 36px;
+
+// 字体粗细 (Font Weight)
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// 行高 (Line Height)
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+$line-height-loose: 2;
+
+// ============================================
+// 布局变量 (Layout Variables)
+// ============================================
+$sidebar-width: 240px;
+$sidebar-collapsed-width: 64px;
+$header-height: 60px;
+$footer-height: 60px;
+
+// ============================================
+// 触摸目标 (Touch Targets)
+// ============================================
+$touch-target-min-size: 44px;
+
+// ============================================
+// Z-index 层级 (Z-index Layers)
+// ============================================
+$z-index-base: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-sidebar: 1040;
+$z-index-header: 1050;
+$z-index-overlay: 1060;
+$z-index-modal: 1070;
+$z-index-popover: 1080;
+$z-index-tooltip: 1090;
+
+// ============================================
+// 过渡时间 (Transition Duration)
+// ============================================
+$transition-fast: 0.15s;
+$transition-base: 0.3s;
+$transition-slow: 0.5s;
+
+// ============================================
+// 过渡函数 (Transition Timing)
+// ============================================
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// ============================================
+// 组件特定变量 (Component Specific)
+// ============================================
+
+// 按钮 (Button)
+$button-height-sm: 28px;
+$button-height-base: 32px;
+$button-height-lg: 40px;
+$button-padding-horizontal: 15px;
+$button-padding-horizontal-sm: 12px;
+$button-padding-horizontal-lg: 20px;
+
+// 输入框 (Input)
+$input-height-sm: 28px;
+$input-height-base: 32px;
+$input-height-lg: 40px;
+$input-padding-horizontal: 12px;
+
+// 表格 (Table)
+$table-header-bg: #fafafa;
+$table-row-hover-bg: #f5f7fa;
+$table-border-color: $border-lighter;
+
+// 卡片 (Card)
+$card-padding: $spacing-lg;
+$card-padding-sm: $spacing-md;
+$card-bg: $background-white;
+$card-border-radius: $border-radius-lg;
+$card-shadow: $box-shadow-base;

@@ -1,0 +1,316 @@
+@use './variables.scss' as *;
+@use './mixins.scss' as *;
+
+// 移动端特定样式优化
+
+// 禁用文本选择 (提升触摸体验)
+@include mobile {
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+// 触摸反馈
+@include mobile {
+  .touch-feedback {
+    -webkit-tap-highlight-color: rgba($primary-color, 0.1);
+    cursor: pointer;
+
+    &:active {
+      opacity: 0.7;
+      transform: scale(0.98);
+    }
+  }
+}
+
+// 移动端按钮优化
+@include mobile {
+  .el-button {
+    @include touch-target;
+    font-size: $font-size-base;
+    padding: 12px 20px;
+
+    &.el-button--small {
+      min-height: 36px;
+      padding: 8px 16px;
+    }
+
+    &.el-button--large {
+      min-height: 48px;
+      padding: 14px 24px;
+      font-size: $font-size-lg;
+    }
+  }
+}
+
+// 移动端输入框优化
+@include mobile {
+  .el-input__wrapper {
+    min-height: $touch-target-min-size;
+  }
+
+  .el-input__inner {
+    font-size: 16px; // 防止 iOS 自动缩放
+    min-height: $touch-target-min-size;
+  }
+
+  .el-textarea__inner {
+    font-size: 16px; // 防止 iOS 自动缩放
+  }
+}
+
+// 移动端表单优化
+@include mobile {
+  .el-form-item {
+    margin-bottom: $spacing-lg;
+
+    .el-form-item__label {
+      font-size: $font-size-base;
+      line-height: 1.5;
+      margin-bottom: $spacing-xs;
+    }
+  }
+}
+
+// 移动端对话框优化
+@include mobile {
+  .el-dialog {
+    width: 90% !important;
+    margin: 5vh auto !important;
+
+    .el-dialog__header {
+      padding: $spacing-lg;
+    }
+
+    .el-dialog__body {
+      padding: $spacing-lg;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .el-dialog__footer {
+      padding: $spacing-lg;
+
+      .el-button {
+        width: 100%;
+        margin: $spacing-xs 0;
+
+        & + .el-button {
+          margin-left: 0;
+        }
+      }
+    }
+  }
+}
+
+// 移动端抽屉优化
+@include mobile {
+  .el-drawer {
+    .el-drawer__header {
+      padding: $spacing-lg;
+      margin-bottom: 0;
+    }
+
+    .el-drawer__body {
+      padding: $spacing-lg;
+    }
+  }
+}
+
+// 移动端下拉菜单优化
+@include mobile {
+  .el-dropdown-menu {
+    .el-dropdown-menu__item {
+      @include touch-target;
+      font-size: $font-size-base;
+      padding: 12px 20px;
+    }
+  }
+}
+
+// 移动端选择器优化
+@include mobile {
+  .el-select-dropdown {
+    .el-select-dropdown__item {
+      @include touch-target;
+      font-size: $font-size-base;
+      padding: 12px 20px;
+    }
+  }
+}
+
+// 移动端日期选择器优化
+@include mobile {
+  .el-picker-panel {
+    .el-date-picker__header-label,
+    .el-date-table td {
+      @include touch-target;
+    }
+  }
+}
+
+// 移动端分页优化
+@include mobile {
+  .el-pagination {
+    .el-pager li,
+    .btn-prev,
+    .btn-next {
+      @include touch-target;
+      font-size: $font-size-base;
+    }
+  }
+}
+
+// 移动端标签页优化
+@include mobile {
+  .el-tabs__nav-wrap {
+    .el-tabs__item {
+      @include touch-target;
+      font-size: $font-size-base;
+      padding: 0 $spacing-lg;
+    }
+  }
+}
+
+// 移动端开关优化
+@include mobile {
+  .el-switch {
+    height: $touch-target-min-size;
+    line-height: $touch-target-min-size;
+
+    .el-switch__core {
+      height: 28px;
+      min-width: 52px;
+    }
+  }
+}
+
+// 移动端复选框和单选框优化
+@include mobile {
+  .el-checkbox,
+  .el-radio {
+    @include touch-target;
+
+    .el-checkbox__inner,
+    .el-radio__inner {
+      width: 20px;
+      height: 20px;
+    }
+
+    .el-checkbox__label,
+    .el-radio__label {
+      font-size: $font-size-base;
+      padding-left: $spacing-sm;
+    }
+  }
+}
+
+// 移动端卡片优化
+@include mobile {
+  .el-card {
+    border-radius: $border-radius-base;
+
+    .el-card__header {
+      padding: $spacing-md;
+      font-size: $font-size-lg;
+    }
+
+    .el-card__body {
+      padding: $spacing-md;
+    }
+  }
+}
+
+// 移动端消息提示优化
+@include mobile {
+  .el-message {
+    min-width: 300px;
+    max-width: 90%;
+    padding: $spacing-md $spacing-lg;
+
+    .el-message__content {
+      font-size: $font-size-base;
+    }
+  }
+
+  .el-notification {
+    width: 90%;
+    max-width: 400px;
+  }
+}
+
+// 移动端加载优化
+@include mobile {
+  .el-loading-mask {
+    .el-loading-spinner {
+      .el-loading-text {
+        font-size: $font-size-base;
+      }
+    }
+  }
+}
+
+// 移动端表格优化
+@include mobile {
+  .el-table {
+    font-size: $font-size-sm;
+
+    .el-table__header th,
+    .el-table__body td {
+      padding: $spacing-sm;
+    }
+
+    // 隐藏不重要的列
+    .hide-on-mobile {
+      display: none !important;
+    }
+  }
+}
+
+// 移动端面包屑优化
+@include mobile {
+  .el-breadcrumb {
+    .el-breadcrumb__item {
+      .el-breadcrumb__inner {
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+// 防止移动端双击缩放
+@include mobile {
+  * {
+    touch-action: manipulation;
+  }
+}
+
+// 移动端滚动优化
+@include mobile {
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+}
+
+// 移动端固定底部按钮
+@include mobile {
+  .mobile-fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: $spacing-md;
+    background-color: #ffffff;
+    border-top: 1px solid $border-light;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+
+    .el-button {
+      width: 100%;
+    }
+  }
+}

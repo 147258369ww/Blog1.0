@@ -1,0 +1,171 @@
+@use './variables.scss' as *;
+
+// 响应式 Mixins
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: $breakpoint-mobile) and (max-width: #{$breakpoint-tablet - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}
+
+// Flexbox Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// 文本省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 清除浮动
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 滚动条样式
+@mixin scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+}
+
+// 触摸目标尺寸
+@mixin touch-target {
+  min-width: $touch-target-min-size;
+  min-height: $touch-target-min-size;
+}
+
+// 响应式容器
+@mixin container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+
+  @include mobile {
+    padding: 0 $spacing-md;
+  }
+}
+
+// 卡片视图 (移动端)
+@mixin card-view {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background-color: #ffffff;
+  border-radius: $border-radius-lg;
+  box-shadow: $box-shadow-base;
+}
+
+// 表格响应式
+@mixin responsive-table {
+  @include mobile {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+// 隐藏元素 (响应式)
+@mixin hide-on-mobile {
+  @include mobile {
+    display: none !important;
+  }
+}
+
+@mixin hide-on-tablet {
+  @include tablet {
+    display: none !important;
+  }
+}
+
+@mixin hide-on-desktop {
+  @include desktop {
+    display: none !important;
+  }
+}
+
+// 显示元素 (响应式)
+@mixin show-on-mobile {
+  display: none !important;
+
+  @include mobile {
+    display: block !important;
+  }
+}
+
+@mixin show-on-tablet {
+  display: none !important;
+
+  @include tablet {
+    display: block !important;
+  }
+}
+
+@mixin show-on-desktop {
+  display: none !important;
+
+  @include desktop {
+    display: block !important;
+  }
+}
