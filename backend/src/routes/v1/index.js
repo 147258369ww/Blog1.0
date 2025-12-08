@@ -20,6 +20,8 @@ const adminTagsRoutes = require('./admin/tags');
 const adminFilesRoutes = require('./admin/files');
 const adminLinksRoutes = require('./admin/links');
 const adminConfigRoutes = require('./admin/config');
+const adminAuditLogRoutes = require('./admin/audit-logs');
+const adminSystemLogRoutes = require('./admin/logs');
 
 // 注册公开路由
 router.use('/auth', authRoutes);
@@ -39,5 +41,7 @@ router.use('/admin/tags', RateLimitMiddleware.api(), adminTagsRoutes);
 router.use('/admin/files', RateLimitMiddleware.api(), adminFilesRoutes);
 router.use('/admin/links', RateLimitMiddleware.api(), adminLinksRoutes);
 router.use('/admin/config', RateLimitMiddleware.api(), adminConfigRoutes);
+router.use('/admin/audit-logs', RateLimitMiddleware.api(), adminAuditLogRoutes);
+router.use('/admin/logs', RateLimitMiddleware.api(), adminSystemLogRoutes);
 
 module.exports = router;

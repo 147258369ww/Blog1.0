@@ -8,6 +8,7 @@ const Tag = require('./Tag')(sequelize);
 const File = require('./File')(sequelize);
 const Link = require('./Link')(sequelize);
 const Config = require('./Config')(sequelize);
+const AuditLog = require('./AuditLog')(sequelize);
 
 // 定义模型关联关系
 
@@ -71,6 +72,17 @@ File.belongsTo(User, {
   as: 'uploader',
 });
 
+// User 与 AuditLog 的关系（一对多）
+User.hasMany(AuditLog, {
+  foreignKey: 'user_id',
+  as: 'auditLogs',
+  onDelete: 'SET NULL',
+});
+AuditLog.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+});
+
 // 导出所有模型和 sequelize 实例
 module.exports = {
   sequelize,
@@ -81,4 +93,5 @@ module.exports = {
   File,
   Link,
   Config,
+  AuditLog,
 };

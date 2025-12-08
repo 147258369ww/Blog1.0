@@ -118,6 +118,15 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'logs',
+        name: 'LogsManage',
+        component: () => import('@/views/logs/Index.vue'),
+        meta: {
+          title: '日志管理',
+          requiresAuth: true,
+        },
+      },
+      {
         path: 'test/image-upload',
         name: 'ImageUploadDemo',
         component: () => import('@/views/test/ImageUploadDemo.vue'),

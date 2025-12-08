@@ -143,12 +143,40 @@ class CategoryController {
 
       const category = await categoryService.createCategory(categoryData);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:create', uid, {
+          resourceType: 'category',
+          resourceId: category.id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(201).json({
         success: true,
         data: category,
       });
     } catch (error) {
       logger.error('Create category error:', error);
+
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:create', uid, {
+          status: 'failure',
+          resourceType: 'category',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '分类 slug 已存在') {
         return res.status(400).json({
@@ -185,12 +213,40 @@ class CategoryController {
 
       const category = await categoryService.updateCategory(id, categoryData);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:update', uid, {
+          resourceType: 'category',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: category,
       });
     } catch (error) {
       logger.error('Update category error:', error);
+
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:update', uid, {
+          status: 'failure',
+          resourceType: 'category',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '分类不存在') {
         return res.status(404).json({
@@ -256,12 +312,40 @@ class CategoryController {
 
       const result = await categoryService.deleteCategory(id);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:delete', uid, {
+          resourceType: 'category',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       logger.error('Delete category error:', error);
+
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:delete', uid, {
+          status: 'failure',
+          resourceType: 'category',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '分类不存在') {
         return res.status(404).json({
@@ -317,12 +401,39 @@ class CategoryController {
 
       await categoryService.updateCategorySort(sortData);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:update_sort', uid, {
+          resourceType: 'category',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         message: 'Category sort updated successfully',
       });
     } catch (error) {
       logger.error('Update category sort error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('category:update_sort', uid, {
+          status: 'failure',
+          resourceType: 'category',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }

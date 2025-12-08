@@ -21,6 +21,19 @@ class FileController {
       // 传递 req 对象，用于自动检测基础 URL
       const file = await fileService.saveFileMetadata(req.file, req.user.id, req);
       
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:upload', uid, {
+          resourceType: 'file',
+          resourceId: file.id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          filename: file.filename,
+        });
+      } catch (_) {}
       res.status(201).json({
         success: true,
         data: {
@@ -36,6 +49,20 @@ class FileController {
       });
     } catch (error) {
       logger.error('Error uploading file:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:upload', uid, {
+          status: 'failure',
+          resourceType: 'file',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }
@@ -63,6 +90,18 @@ class FileController {
       
       const result = await fileService.getFiles(filters, pagination);
       
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:list', uid, {
+          resourceType: 'file',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
       res.json({
         success: true,
         data: result.files,
@@ -70,6 +109,20 @@ class FileController {
       });
     } catch (error) {
       logger.error('Error getting files:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:list', uid, {
+          status: 'failure',
+          resourceType: 'file',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }
@@ -98,8 +151,34 @@ class FileController {
         success: true,
         data: file,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:get', uid, {
+          resourceType: 'file',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Error getting file:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:get', uid, {
+          status: 'failure',
+          resourceType: 'file',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }
@@ -118,6 +197,18 @@ class FileController {
         success: true,
         message: '文件删除成功',
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:delete', uid, {
+          resourceType: 'file',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       if (error.message === '文件不存在') {
         return res.status(404).json({
@@ -130,6 +221,20 @@ class FileController {
       }
       
       logger.error('Error deleting file:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('file:delete', uid, {
+          status: 'failure',
+          resourceType: 'file',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }

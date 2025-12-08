@@ -1,6 +1,18 @@
 const { Category, Post, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
+async function withRetry(fn, retries = 3, delay = 500) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries > 0 && (String(error.message || '').includes('ECONNRESET') || String(error.code || '') === 'ECONNRESET')) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return withRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
 class CategoryRepository {
   /**
    * 创建分类
@@ -179,42 +191,31 @@ class CategoryRepository {
    */
   async getPostCount(id, includeChildren = false) {
     if (!includeChildren) {
-      // 只统计当前分类的文章
-      const count = await Post.count({
-        where: { 
+      const count = await withRetry(() => Post.count({
+        where: {
           category_id: id,
           status: 'published'
-        },
-      });
+        }
+      }));
       return count;
     }
-    
-    // 递归获取所有子分类ID
-    const getAllChildrenIds = async (categoryId) => {
-      const children = await Category.findAll({
-        where: { parent_id: categoryId },
-        attributes: ['id']
-      });
-      
-      let ids = [categoryId];
-      for (const child of children) {
-        const childIds = await getAllChildrenIds(child.id);
-        ids = ids.concat(childIds);
-      }
-      
-      return ids;
-    };
-    
-    // 获取当前分类及所有子分类的ID
-    const categoryIds = await getAllChildrenIds(id);
-    
-    // 统计所有这些分类的文章数量
-    const count = await Post.count({
-      where: { 
+
+    const ids = await withRetry(() => sequelize.query(
+      'WITH RECURSIVE cte AS (\n' +
+      '  SELECT id, parent_id FROM categories WHERE id = :root\n' +
+      '  UNION ALL\n' +
+      '  SELECT c.id, c.parent_id FROM categories c INNER JOIN cte ON c.parent_id = cte.id\n' +
+      ') SELECT id FROM cte;',
+      { type: sequelize.QueryTypes.SELECT, replacements: { root: id } }
+    ));
+
+    const categoryIds = ids.map(r => r.id);
+    const count = await withRetry(() => Post.count({
+      where: {
         category_id: { [Op.in]: categoryIds },
         status: 'published'
-      },
-    });
+      }
+    }));
 
     return count;
   }
@@ -262,6 +263,24 @@ class CategoryRepository {
     }
 
     return descendants;
+  }
+
+  async getPostCountsForCategoryIds(categoryIds = []) {
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+      return [];
+    }
+    const rows = await withRetry(() => Post.findAll({
+      attributes: [
+        'category_id',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      where: {
+        category_id: { [Op.in]: categoryIds },
+        status: 'published'
+      },
+      group: ['category_id']
+    }));
+    return rows.map(r => ({ category_id: r.get('category_id'), count: parseInt(r.get('count'), 10) || 0 }));
   }
 }
 

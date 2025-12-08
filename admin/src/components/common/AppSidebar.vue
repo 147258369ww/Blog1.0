@@ -42,7 +42,10 @@ const menuItems = [
   {
     title: '系统设置',
     icon: Setting,
-    children: [{ title: '系统配置', path: '/config' }],
+    children: [
+      { title: '系统配置', path: '/config' },
+      { title: '日志管理', path: '/logs' },
+    ],
   },
 ]
 

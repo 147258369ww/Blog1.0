@@ -70,8 +70,34 @@ class LinkController {
           totalPages: result.totalPages,
         },
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:list', uid, {
+          resourceType: 'link',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Get all links error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:list', uid, {
+          status: 'failure',
+          resourceType: 'link',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }
@@ -90,6 +116,18 @@ class LinkController {
         success: true,
         data: link,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:get', uid, {
+          resourceType: 'link',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Get link error:', error);
 
@@ -121,8 +159,34 @@ class LinkController {
         success: true,
         data: link,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:create', uid, {
+          resourceType: 'link',
+          resourceId: link.id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Create link error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:create', uid, {
+          status: 'failure',
+          resourceType: 'link',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === 'URL 格式不正确' || error.message === 'Logo URL 格式不正确') {
         return res.status(400).json({
@@ -153,8 +217,34 @@ class LinkController {
         success: true,
         data: link,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:update', uid, {
+          resourceType: 'link',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Update link error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:update', uid, {
+          status: 'failure',
+          resourceType: 'link',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '友链不存在') {
         return res.status(404).json({
@@ -194,8 +284,34 @@ class LinkController {
         success: true,
         data: result,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:delete', uid, {
+          resourceType: 'link',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Delete link error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('link:delete', uid, {
+          status: 'failure',
+          resourceType: 'link',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '友链不存在') {
         return res.status(404).json({

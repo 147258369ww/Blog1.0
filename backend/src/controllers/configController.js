@@ -87,6 +87,19 @@ class ConfigController {
           data: configs,
           message: `Successfully updated ${configs.length} configurations`,
         });
+        try {
+          const AuditLogger = require('../utils/audit');
+          const uid = req.user?.id || null;
+          AuditLogger.log('config:bulk_update', uid, {
+            resourceType: 'config',
+            resourceId: null,
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
+            route: req.originalUrl,
+            method: req.method,
+            count: configs.length,
+          });
+        } catch (_) {}
       } else {
         // 单个更新
         const { key, value, type, description, is_public } = configData;
@@ -112,9 +125,35 @@ class ConfigController {
           success: true,
           data: config,
         });
+        try {
+          const AuditLogger = require('../utils/audit');
+          const uid = req.user?.id || null;
+          AuditLogger.log('config:update', uid, {
+            resourceType: 'config',
+            resourceId: key,
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
+            route: req.originalUrl,
+            method: req.method,
+          });
+        } catch (_) {}
       }
     } catch (error) {
       logger.error('Update config error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('config:update', uid, {
+          status: 'failure',
+          resourceType: 'config',
+          resourceId: Array.isArray(req.body) ? null : req.body?.key || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
       next(error);
     }
   }
@@ -133,6 +172,18 @@ class ConfigController {
         success: true,
         data: result,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('config:delete', uid, {
+          resourceType: 'config',
+          resourceId: key,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Delete config error:', error);
 

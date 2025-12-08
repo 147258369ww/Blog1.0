@@ -129,9 +129,9 @@ export function observeWebVitals(): void {
         renderTime?: number
         loadTime?: number
       }
-      const lcp = lastEntry.renderTime || lastEntry.loadTime
+      const lcp = lastEntry.renderTime ?? lastEntry.loadTime
 
-      if (import.meta.env.DEV) {
+      if (import.meta.env.DEV && typeof lcp === 'number') {
         console.log('LCP:', `${lcp.toFixed(2)}ms`)
       }
     })

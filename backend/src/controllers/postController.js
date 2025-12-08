@@ -161,6 +161,19 @@ class PostController {
         includeDeleted === 'true'
       );
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('post:list', uid, {
+          resourceType: 'post',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: result.posts,
@@ -187,6 +200,19 @@ class PostController {
       const { includeDeleted = 'false' } = req.query;
 
       const post = await postService.getPost(id, includeDeleted === 'true');
+
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('post:get', uid, {
+          resourceType: 'post',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
 
       res.status(200).json({
         success: true,
@@ -220,12 +246,37 @@ class PostController {
 
       const post = await postService.createPost(postData, authorId);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:create', authorId, {
+          resourceType: 'post',
+          resourceId: post.id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(201).json({
         success: true,
         data: post,
       });
     } catch (error) {
       logger.error('Create post error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:create', req.user?.id || null, {
+          status: 'failure',
+          resourceType: 'post',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '文章 slug 已存在') {
         return res.status(400).json({
@@ -273,12 +324,37 @@ class PostController {
 
       const post = await postService.updatePost(id, postData, userId);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:update', userId, {
+          resourceType: 'post',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: post,
       });
     } catch (error) {
       logger.error('Update post error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:update', req.user?.id || null, {
+          status: 'failure',
+          resourceType: 'post',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '文章不存在') {
         return res.status(404).json({
@@ -335,12 +411,37 @@ class PostController {
 
       const result = await postService.deletePost(id, userId);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:delete', userId, {
+          resourceType: 'post',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: result,
       });
     } catch (error) {
       logger.error('Delete post error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:delete', req.user?.id || null, {
+          status: 'failure',
+          resourceType: 'post',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '文章不存在') {
         return res.status(404).json({
@@ -389,12 +490,38 @@ class PostController {
 
       const updatedPost = await postService.updatePost(id, updateData, userId);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:update_status', userId, {
+          resourceType: 'post',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          statusValue: status,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: updatedPost,
       });
     } catch (error) {
       logger.error('Update post status error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:update_status', req.user?.id || null, {
+          status: 'failure',
+          resourceType: 'post',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '文章不存在') {
         return res.status(404).json({
@@ -421,12 +548,37 @@ class PostController {
 
       const post = await postService.restorePost(id, userId);
 
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:restore', userId, {
+          resourceType: 'post',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
+
       res.status(200).json({
         success: true,
         data: post,
       });
     } catch (error) {
       logger.error('Restore post error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        AuditLogger.log('post:restore', req.user?.id || null, {
+          status: 'failure',
+          resourceType: 'post',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '文章不存在或未被删除') {
         return res.status(404).json({

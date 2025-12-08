@@ -126,8 +126,34 @@ class TagController {
         success: true,
         data: tag,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:create', uid, {
+          resourceType: 'tag',
+          resourceId: tag.id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Create tag error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:create', uid, {
+          status: 'failure',
+          resourceType: 'tag',
+          resourceId: null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '标签 slug 已存在') {
         return res.status(400).json({
@@ -168,8 +194,34 @@ class TagController {
         success: true,
         data: tag,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:update', uid, {
+          resourceType: 'tag',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Update tag error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:update', uid, {
+          status: 'failure',
+          resourceType: 'tag',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '标签不存在') {
         return res.status(404).json({
@@ -219,8 +271,34 @@ class TagController {
         success: true,
         data: result,
       });
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:delete', uid, {
+          resourceType: 'tag',
+          resourceId: id,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+        });
+      } catch (_) {}
     } catch (error) {
       logger.error('Delete tag error:', error);
+      try {
+        const AuditLogger = require('../utils/audit');
+        const uid = req.user?.id || null;
+        AuditLogger.log('tag:delete', uid, {
+          status: 'failure',
+          resourceType: 'tag',
+          resourceId: req.params?.id || null,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          route: req.originalUrl,
+          method: req.method,
+          error: error.message,
+        });
+      } catch (_) {}
 
       if (error.message === '标签不存在') {
         return res.status(404).json({

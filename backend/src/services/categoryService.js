@@ -188,22 +188,24 @@ class CategoryService {
       }, 300);
       
       // 转换字段名以匹配前端期望的格式，并获取文章数量
-      const result = await Promise.all(
-        categories.map(async (category) => {
-          const articleCount = await categoryRepository.getPostCount(category.id);
-          return {
-            id: category.id,
-            name: category.name,
-            slug: category.slug,
-            description: category.description,
-            parentId: category.parent_id,
-            sort: category.sort_order,
-            articleCount: articleCount,
-            createdAt: category.created_at,
-            updatedAt: category.updated_at,
-          };
-        })
-      );
+      const ids = categories.map(c => c.id);
+      const counts = await categoryRepository.getPostCountsForCategoryIds(ids);
+      const countsMap = new Map(counts.map(item => [item.category_id, item.count]));
+
+      const result = categories.map((category) => {
+        const articleCount = countsMap.get(category.id) || 0;
+        return {
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          parentId: category.parent_id,
+          sort: category.sort_order,
+          articleCount: articleCount,
+          createdAt: category.created_at,
+          updatedAt: category.updated_at,
+        };
+      });
       
       return result;
     } catch (error) {
@@ -244,7 +246,10 @@ class CategoryService {
         const tree = [];
         for (const category of categories) {
           // 获取该分类的文章数量（包括子分类）
-          const articleCount = await categoryRepository.getPostCount(category.id, true);
+          const cacheKey = cacheService.generateKey(cacheService.KEY_PREFIXES.CATEGORY, category.id, 'post_count_with_children');
+          const articleCount = await cacheService.getOrSet(cacheKey, async () => {
+            return await categoryRepository.getPostCount(category.id, true);
+          }, 300);
           
           const node = {
             id: category.id,

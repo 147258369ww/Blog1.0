@@ -9,21 +9,22 @@ import { sanitizeObject } from '@/utils/security'
 /**
  * 日志级别
  */
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-}
+const LOG_LEVEL = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const
+type LogLevel = (typeof LOG_LEVEL)[keyof typeof LOG_LEVEL]
 
 /**
  * 日志级别映射
  */
 const logLevelMap: Record<string, LogLevel> = {
-  debug: LogLevel.DEBUG,
-  info: LogLevel.INFO,
-  warn: LogLevel.WARN,
-  error: LogLevel.ERROR,
+  debug: LOG_LEVEL.DEBUG,
+  info: LOG_LEVEL.INFO,
+  warn: LOG_LEVEL.WARN,
+  error: LOG_LEVEL.ERROR,
 }
 
 /**
@@ -34,7 +35,7 @@ class Logger {
   private enabled: boolean
 
   constructor() {
-    this.level = logLevelMap[loggingConfig.level] || LogLevel.INFO
+    this.level = logLevelMap[loggingConfig.level] || LOG_LEVEL.INFO
     this.enabled = loggingConfig.enabled
   }
 
@@ -43,7 +44,7 @@ class Logger {
    */
   setLevel(level: LogLevel | string) {
     if (typeof level === 'string') {
-      this.level = logLevelMap[level] || LogLevel.INFO
+      this.level = logLevelMap[level] || LOG_LEVEL.INFO
     } else {
       this.level = level
     }
@@ -80,7 +81,7 @@ class Logger {
    * 调试日志
    */
   debug(message: string, data?: any) {
-    if (!this.enabled || this.level > LogLevel.DEBUG) {
+    if (!this.enabled || this.level > LOG_LEVEL.DEBUG) {
       return
     }
     console.debug(this.formatMessage('DEBUG', message, data))
@@ -90,7 +91,7 @@ class Logger {
    * 信息日志
    */
   info(message: string, data?: any) {
-    if (!this.enabled || this.level > LogLevel.INFO) {
+    if (!this.enabled || this.level > LOG_LEVEL.INFO) {
       return
     }
     console.info(this.formatMessage('INFO', message, data))
@@ -100,7 +101,7 @@ class Logger {
    * 警告日志
    */
   warn(message: string, data?: any) {
-    if (!this.enabled || this.level > LogLevel.WARN) {
+    if (!this.enabled || this.level > LOG_LEVEL.WARN) {
       return
     }
     console.warn(this.formatMessage('WARN', message, data))
@@ -110,7 +111,7 @@ class Logger {
    * 错误日志
    */
   error(message: string, error?: any) {
-    if (!this.enabled || this.level > LogLevel.ERROR) {
+    if (!this.enabled || this.level > LOG_LEVEL.ERROR) {
       return
     }
     const errorData =
@@ -142,7 +143,7 @@ class Logger {
    * 记录 API 请求
    */
   api(method: string, url: string, status?: number, duration?: number) {
-    if (!this.enabled || this.level > LogLevel.DEBUG) {
+    if (!this.enabled || this.level > LOG_LEVEL.DEBUG) {
       return
     }
     const message = `${method} ${url}`
@@ -161,7 +162,7 @@ export const logger = new Logger()
  * 生产环境使用 ERROR 级别
  */
 if (import.meta.env.DEV) {
-  logger.setLevel(LogLevel.DEBUG)
+  logger.setLevel(LOG_LEVEL.DEBUG)
 } else {
-  logger.setLevel(LogLevel.ERROR)
+  logger.setLevel(LOG_LEVEL.ERROR)
 }
