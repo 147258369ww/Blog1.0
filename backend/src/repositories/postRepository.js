@@ -89,6 +89,8 @@ class PostRepository {
    * 查询文章列表
    */
   async findAll(filters = {}, pagination = {}, options = {}) {
+    const queryMonitor = require('../utils/queryMonitor');
+    
     const {
       status,
       categoryId,
@@ -182,7 +184,12 @@ class PostRepository {
       queryOptions.paranoid = false;
     }
 
-    const { count, rows } = await Post.findAndCountAll(queryOptions);
+    // 使用查询监控
+    const { count, rows } = await queryMonitor.monitor(
+      () => Post.findAndCountAll(queryOptions),
+      'Post.findAll',
+      { filters, pagination, options }
+    );
 
     return {
       posts: rows,

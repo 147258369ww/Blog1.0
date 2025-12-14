@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const { RateLimitError } = require('../utils/customErrors');
 
 /**
  * Error handler middleware
@@ -17,6 +18,7 @@ const errorHandler = (err, req, res, _next) => {
   let statusCode = 500;
   let message = '服务器内部错误';
   let details = null;
+  let retryAfter = null;
 
   // Handle operational errors (our custom errors)
   if (err.isOperational) {
@@ -24,6 +26,10 @@ const errorHandler = (err, req, res, _next) => {
     message = err.message;
     if (err.details) {
       details = err.details;
+    }
+    // Handle rate limit specific fields
+    if (err instanceof RateLimitError && err.retryAfter) {
+      retryAfter = err.retryAfter;
     }
   }
   // Handle Sequelize validation errors
@@ -95,6 +101,11 @@ const errorHandler = (err, req, res, _next) => {
     response.error.details = details;
   }
 
+  // Add retryAfter for rate limit errors
+  if (retryAfter) {
+    response.error.retryAfter = retryAfter;
+  }
+
   // Add stack trace in development (but not in test)
   if (process.env.NODE_ENV === 'development' && err.stack) {
     response.error.stack = err.stack;
@@ -102,7 +113,7 @@ const errorHandler = (err, req, res, _next) => {
 
   // Minimize error payload in production for server errors
   if (process.env.NODE_ENV === 'production' && statusCode >= 500) {
-    response.error = { code: 'INTERNAL_SERVER_ERROR' };
+    response.error = { code: 'INTERNAL_SERVER_ERROR', message: '服务器内部错误' };
   }
 
   res.status(statusCode).json(response);

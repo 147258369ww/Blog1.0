@@ -7,22 +7,45 @@ const logger = require('../utils/logger');
  */
 class CacheService {
   constructor() {
+    // 缓存 TTL 配置（秒）
+    this.CACHE_TTL = {
+      VERY_SHORT: 30,      // 30秒 - 极短期数据
+      SHORT: 60,           // 1分钟 - 频繁变化的数据
+      MEDIUM: 300,         // 5分钟 - 一般数据
+      LONG: 3600,          // 1小时 - 稳定数据
+      VERY_LONG: 86400,    // 1天 - 很少变化的数据
+      PERMANENT: 2592000,  // 30天 - 准永久数据
+    };
+
     // 缓存键命名规范前缀
     this.KEY_PREFIXES = {
+      // 认证相关
       EMAIL_CODE: 'email_code:',           // 邮箱验证码
       REFRESH_TOKEN: 'refresh_token:',     // 刷新令牌
-      POST_VIEWS: 'post_views:',           // 文章浏览量
-      POST_VIEW_LOCK: 'post_view_lock:',   // 文章浏览防重复锁
-      CONFIG: 'config:',                   // 系统配置
       USER_SESSION: 'user_session:',       // 用户会话
+      
+      // 频率限制相关
+      RATE_LIMIT_LOGIN: 'rate_limit:login:',           // 登录限流
+      RATE_LIMIT_REGISTER: 'rate_limit:register:',     // 注册限流
+      RATE_LIMIT_API: 'rate_limit:api:',               // API限流
+      RATE_LIMIT_VERIFY_EMAIL_MINUTE: 'rate_limit:verify_email:minute:', // 验证码分钟限流
+      RATE_LIMIT_VERIFY_EMAIL_HOUR: 'rate_limit:verify_email:hour:',     // 验证码小时限流
+      RATE_LIMIT_VERIFY_IP_HOUR: 'rate_limit:verify_ip:hour:',           // 验证码IP限流
+      
+      // 内容相关
       POST: 'post:',
       POSTS_PAGE: 'posts:page:',
+      POST_VIEWS: 'post_views:',           // 文章浏览量
+      POST_VIEW_LOCK: 'post_view_lock:',   // 文章浏览防重复锁
       CATEGORY: 'category:',
       CATEGORIES: 'categories:',
       CATEGORY_TREE: 'category_tree:',
       TAG: 'tag:',
       TAGS: 'tags:',
-      TAG_POPULAR: 'tag_popular:'
+      TAG_POPULAR: 'tag_popular:',
+      
+      // 系统配置
+      CONFIG: 'config:',                   // 系统配置
     };
   }
 
@@ -109,14 +132,103 @@ class CacheService {
     }
   }
 
+  /**
+   * 获取或设置缓存（带缓存击穿保护）
+   * @param {string} key - 缓存键
+   * @param {Function} fetchFn - 数据获取函数
+   * @param {number} ttl - 过期时间（秒）
+   * @returns {Promise<any>} 数据
+   */
   async getOrSet(key, fetchFn, ttl = 3600) {
+    // 尝试从缓存获取
     const cached = await this.get(key);
     if (cached !== null) {
       return cached;
     }
-    const data = await fetchFn();
-    await this.set(key, data, ttl);
-    return data;
+
+    // 缓存击穿保护：使用锁机制
+    const lockKey = `lock:${key}`;
+    const lockValue = Date.now().toString();
+    const lockTTL = 10; // 锁的有效期 10 秒
+
+    try {
+      if (!this.isRedisAvailable()) {
+        // Redis 不可用，直接获取数据
+        return await fetchFn();
+      }
+
+      // 尝试获取锁
+      const lockAcquired = await redisClient.set(lockKey, lockValue, {
+        NX: true,
+        EX: lockTTL,
+      });
+
+      if (lockAcquired) {
+        // 获取锁成功，执行数据获取
+        try {
+          const data = await fetchFn();
+          await this.set(key, data, ttl);
+          return data;
+        } finally {
+          // 释放锁
+          await redisClient.del(lockKey);
+        }
+      } else {
+        // 获取锁失败，等待一小段时间后重试
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 再次尝试从缓存获取
+        const retryCache = await this.get(key);
+        if (retryCache !== null) {
+          return retryCache;
+        }
+
+        // 如果还是没有，直接获取数据（降级策略）
+        return await fetchFn();
+      }
+    } catch (error) {
+      logger.error('Cache getOrSet error:', error);
+      // 降级：直接获取数据
+      return await fetchFn();
+    }
+  }
+
+  /**
+   * 缓存预热
+   * @param {Array<Object>} warmupTasks - 预热任务列表
+   * @returns {Promise<Object>} 预热结果
+   */
+  async warmup(warmupTasks = []) {
+    if (!this.isRedisAvailable()) {
+      logger.warn('Redis unavailable, cache warmup skipped');
+      return { success: false, message: 'Redis unavailable' };
+    }
+
+    logger.info('Starting cache warmup...');
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [],
+    };
+
+    for (const task of warmupTasks) {
+      try {
+        const { key, fetchFn, ttl } = task;
+        await this.getOrSet(key, fetchFn, ttl);
+        results.success++;
+        logger.debug(`Cache warmed up: ${key}`);
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          key: task.key,
+          error: error.message,
+        });
+        logger.error(`Cache warmup failed for ${task.key}:`, error);
+      }
+    }
+
+    logger.info(`Cache warmup completed: ${results.success} success, ${results.failed} failed`);
+    return results;
   }
 
   /**

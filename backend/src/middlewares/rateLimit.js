@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const cacheService = require('../services/cacheService');
 
 // 延迟加载 Redis 客户端，避免在模块加载时阻塞
 let redisClient;
@@ -8,6 +9,9 @@ const getRedisClient = () => {
   }
   return redisClient;
 };
+
+// 使用统一的 Redis 键前缀
+const { KEY_PREFIXES } = cacheService;
 
 /**
  * 频率限制中间件
@@ -96,12 +100,12 @@ class RateLimitMiddleware {
     return this.create({
       windowMs: 60000, // 1分钟
       maxRequests: 5,  // 5次
-      keyPrefix: 'login_ip',
+      keyPrefix: KEY_PREFIXES.RATE_LIMIT_LOGIN.slice(0, -1), // 移除末尾的冒号
       message: '登录尝试过于频繁，请15分钟后再试',
       keyGenerator: (req) => {
         // 优先使用账号标识，如果没有则使用IP
         const identifier = req.body?.email || req.ip;
-        return `login:${identifier}`;
+        return identifier;
       }
     });
   }
@@ -123,7 +127,7 @@ class RateLimitMiddleware {
         }
 
         // 邮箱级别限制：1次/分钟
-        const emailMinuteKey = `verify_email_minute:${email}`;
+        const emailMinuteKey = `${KEY_PREFIXES.RATE_LIMIT_VERIFY_EMAIL_MINUTE}${email}`;
         const emailMinuteRequests = await client.lRange(emailMinuteKey, 0, -1);
         const now = Date.now();
         const minuteWindowStart = now - 60000;
@@ -144,7 +148,7 @@ class RateLimitMiddleware {
         }
 
         // 邮箱级别限制：5次/小时
-        const emailHourKey = `verify_email_hour:${email}`;
+        const emailHourKey = `${KEY_PREFIXES.RATE_LIMIT_VERIFY_EMAIL_HOUR}${email}`;
         const emailHourRequests = await client.lRange(emailHourKey, 0, -1);
         const hourWindowStart = now - 3600000;
         
@@ -164,7 +168,7 @@ class RateLimitMiddleware {
         }
 
         // IP级别限制：10次/小时
-        const ipHourKey = `verify_ip_hour:${ip}`;
+        const ipHourKey = `${KEY_PREFIXES.RATE_LIMIT_VERIFY_IP_HOUR}${ip}`;
         const ipHourRequests = await client.lRange(ipHourKey, 0, -1);
         
         const validIpRequests = ipHourRequests
@@ -219,7 +223,7 @@ class RateLimitMiddleware {
     return this.create({
       windowMs: 3600000, // 1小时
       maxRequests: 3,     // 3次
-      keyPrefix: 'register_ip',
+      keyPrefix: KEY_PREFIXES.RATE_LIMIT_REGISTER.slice(0, -1),
       message: '注册次数已达上限，请1小时后再试',
     });
   }
@@ -232,48 +236,9 @@ class RateLimitMiddleware {
     return this.create({
       windowMs: 60000,  // 1分钟
       maxRequests: 100, // 100次
-      keyPrefix: 'api_ip',
+      keyPrefix: KEY_PREFIXES.RATE_LIMIT_API.slice(0, -1),
       message: 'API请求过于频繁',
     });
-  }
-
-  static intentQuota() {
-    return async (req, res, next) => {
-      try {
-        const client = getRedisClient();
-        const ip = req.ip;
-
-        const minuteKey = `intent_minute:${ip}`;
-        const now = Date.now();
-        const windowStart = now - 60000;
-        const requests = await client.lRange(minuteKey, 0, -1);
-        const validRequests = requests.map((t) => parseInt(t)).filter((t) => t > windowStart);
-        if (validRequests.length >= 10) {
-          const retryAfter = Math.ceil((validRequests[0] + 60000 - now) / 1000);
-          return res.status(429).json({
-            success: false,
-            error: { code: 'INTENT_RATE_LIMIT', message: '意图接口请求过于频繁', retryAfter },
-          });
-        }
-        await client.lPush(minuteKey, now.toString());
-        await client.expire(minuteKey, 60);
-        await client.lTrim(minuteKey, 0, 9);
-
-        const dayKey = `intent_day:${ip}`;
-        const dayCount = await client.incr(dayKey);
-        const ttl = await client.ttl(dayKey);
-        if (ttl < 0) {
-          await client.expire(dayKey, 86400);
-        }
-        if (dayCount > 1000) {
-          req.intentDailyExceeded = true;
-        }
-
-        next();
-      } catch (error) {
-        next();
-      }
-    };
   }
 }
 

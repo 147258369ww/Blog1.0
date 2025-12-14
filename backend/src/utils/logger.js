@@ -20,23 +20,29 @@ ${stack}`
   })
 );
 
+// 日志轮转配置
+const logRotationConfig = {
+  maxsize: parseInt(process.env.LOG_MAX_SIZE, 10) || 10485760, // 默认 10MB
+  maxFiles: parseInt(process.env.LOG_MAX_FILES, 10) || (process.env.NODE_ENV === 'production' ? 30 : 7), // 生产环境保留30天，开发环境7天
+  tailable: true, // 最新的日志在 .log 文件中
+  zippedArchive: process.env.NODE_ENV === 'production', // 生产环境压缩旧日志
+};
+
 // 创建 logger
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
   format: logFormat,
   transports: [
     // 错误日志
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),
       level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
+      ...logRotationConfig,
     }),
     // 所有日志
     new winston.transports.File({
       filename: path.join(logDir, 'combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
+      ...logRotationConfig,
     }),
   ],
 });

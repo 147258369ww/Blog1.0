@@ -41,6 +41,37 @@ if (missingVars.length > 0) {
   throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
 }
 
+// 可选但建议设置的环境变量
+const optionalEnvVars = [
+  { name: 'SERVER_BASE_URL', description: '服务器基础 URL，用于生成文件访问链接' },
+  { name: 'UPLOAD_DIR', description: '文件上传目录路径' },
+  { name: 'DB_POOL_MAX', description: '数据库连接池最大连接数' },
+  { name: 'DB_POOL_MIN', description: '数据库连接池最小连接数' },
+  { name: 'JWT_ACCESS_EXPIRES_IN', description: 'JWT 访问令牌有效期' },
+  { name: 'JWT_REFRESH_EXPIRES_IN', description: 'JWT 刷新令牌有效期' },
+];
+
+// 延迟加载 logger 以避免循环依赖
+let logger;
+const getLogger = () => {
+  if (!logger) {
+    logger = require('../utils/logger');
+  }
+  return logger;
+};
+
+// 检查可选环境变量并记录警告
+optionalEnvVars.forEach(({ name, description }) => {
+  if (!process.env[name]) {
+    try {
+      getLogger().warn(`Optional environment variable not set: ${name} - ${description}`);
+    } catch (err) {
+      // 如果 logger 还未初始化，使用 console
+      console.warn(`⚠️  Optional environment variable not set: ${name} - ${description}`);
+    }
+  }
+});
+
 const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 3000,
@@ -55,10 +86,10 @@ const config = {
     dialect: 'postgres',
     timezone: process.env.DB_TIMEZONE || '+08:00',
     pool: {
-      max: 20,
-      min: 5,
-      acquire: 30000,
-      idle: 10000,
+      max: parseInt(process.env.DB_POOL_MAX, 10) || 20,
+      min: parseInt(process.env.DB_POOL_MIN, 10) || 5,
+      acquire: parseInt(process.env.DB_POOL_ACQUIRE, 10) || 30000,
+      idle: parseInt(process.env.DB_POOL_IDLE, 10) || 10000,
     },
     logging: false,
   },
