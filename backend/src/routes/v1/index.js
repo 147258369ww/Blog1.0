@@ -10,7 +10,6 @@ const tagsRoutes = require('./tags');
 const linksRoutes = require('./links');
 const statsRoutes = require('./stats');
 const settingsRoutes = require('./settings');
-const intentRoutes = require('./intent');
 
 // 管理员路由
 const adminAuthRoutes = require('./admin/auth');
@@ -31,7 +30,6 @@ router.use('/tags', RateLimitMiddleware.api(), tagsRoutes);
 router.use('/links', RateLimitMiddleware.api(), linksRoutes);
 router.use('/stats', RateLimitMiddleware.api(), statsRoutes);
 router.use('/settings', RateLimitMiddleware.api(), settingsRoutes);
-router.use('/intent', RateLimitMiddleware.api(), intentRoutes);
 
 // 注册管理员路由
 router.use('/admin/auth', adminAuthRoutes);
