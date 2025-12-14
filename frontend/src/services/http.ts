@@ -10,6 +10,7 @@ import { useToast } from '@/composables/useToast'
 import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { isRetryableError } from '@/utils/retry'
 import { cacheManager } from '@/utils/cache'
+import { config } from '@/config/env'
 
 // 扩展 Axios 配置类型以支持重试计数
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -28,8 +29,8 @@ class HttpClient {
     reject: (reason?: unknown) => void
   }> = []
   private retryConfig = {
-    maxRetries: 3,
-    initialDelay: 1000,
+    maxRetries: config.maxRetries,
+    initialDelay: config.retryDelay,
     maxDelay: 10000,
     backoffMultiplier: 2,
   }
@@ -37,7 +38,7 @@ class HttpClient {
   constructor() {
     // 子任务 3.1: 实现 Axios 基础配置
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL,
+      baseURL: config.apiBaseUrl,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -45,6 +46,13 @@ class HttpClient {
     })
 
     this.setupInterceptors()
+  }
+
+  /**
+   * 生成请求 ID
+   */
+  private generateRequestId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
   }
 
   /**
@@ -59,6 +67,12 @@ class HttpClient {
         if (authStore.accessToken) {
           config.headers.Authorization = `Bearer ${authStore.accessToken}`
         }
+        
+        // 添加请求 ID 用于追踪（如果后端返回了请求 ID，则使用相同的 ID）
+        if (!config.headers['X-Request-ID']) {
+          config.headers['X-Request-ID'] = this.generateRequestId()
+        }
+        
         return config
       },
       (error) => {
@@ -69,6 +83,23 @@ class HttpClient {
     // 子任务 3.3: 实现响应拦截器
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
+        // 记录请求 ID（用于调试）
+        const requestId = response.headers['x-request-id']
+        if (requestId && import.meta.env.DEV) {
+          console.debug(`[Request ID: ${requestId}] ${response.config.method?.toUpperCase()} ${response.config.url}`)
+        }
+        
+        // 检查 API 版本弃用警告
+        if (response.headers['deprecation'] === 'true') {
+          const sunsetDate = response.headers['sunset']
+          const migrationLink = response.headers['link']
+          console.warn(
+            `⚠️ API 版本已弃用！\n` +
+            `下线日期: ${sunsetDate || '未知'}\n` +
+            `迁移指南: ${migrationLink || '请查看文档'}`
+          )
+        }
+        
         // 自动解析响应数据并提取 data 字段，并转换字段名
         const data = response.data
         if (data && typeof data === 'object') {
@@ -118,7 +149,7 @@ class HttpClient {
           try {
             // 调用刷新令牌接口
             const response = await axios.post(
-              `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+              `${config.apiBaseUrl}/auth/refresh`,
               {
                 refreshToken: authStore.refreshToken,
               }
@@ -202,7 +233,7 @@ class HttpClient {
    */
   private getErrorMessage(error: AxiosError): string {
     if (error.response) {
-      const prod = import.meta.env.PROD
+      const prod = config.isProd
       const data = error.response.data as { error?: { message?: string } }
       if (error.response.status === 429) {
         const headers = error.response.headers || {}
@@ -311,18 +342,17 @@ class HttpClient {
   /**
    * GET 请求
    */
-  public get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const ttl = this.getTTLForUrl(url)
     if (ttl > 0) {
       const key = this.buildCacheKey(url, config)
       const cached = cacheManager.get<T>(key)
       if (cached !== null) {
-        return Promise.resolve(cached)
+        return cached
       }
-      return (this.instance.get<T>(url, config) as unknown as Promise<T>).then((data: T) => {
-        cacheManager.set<T>(key, data, ttl)
-        return data
-      })
+      const data = await this.instance.get<T>(url, config) as unknown as T
+      cacheManager.set<T>(key, data, ttl)
+      return data
     }
     return this.instance.get(url, config) as unknown as Promise<T>
   }
@@ -355,9 +385,9 @@ class HttpClient {
     return this.instance.patch(url, data, config)
   }
 
-  private buildCacheKey(url: string, config?: AxiosRequestConfig): string {
-    const base = import.meta.env.VITE_API_BASE_URL || ''
-    const params = config?.params ? JSON.stringify(config.params) : ''
+  private buildCacheKey(url: string, axiosConfig?: AxiosRequestConfig): string {
+    const base = config.apiBaseUrl || ''
+    const params = axiosConfig?.params ? JSON.stringify(axiosConfig.params) : ''
     return `${base}|${url}|${params}`
   }
 

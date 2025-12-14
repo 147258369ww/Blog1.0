@@ -41,6 +41,21 @@ export const usePostsStore = defineStore('posts', () => {
     }
   }
 
+  // Helper function to generate stable cache keys
+  const serializeParams = (params?: GetPostsParams): string => {
+    if (!params) return 'default'
+    
+    // Sort keys alphabetically to ensure stable cache keys
+    const sorted = Object.keys(params)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = params[key as keyof GetPostsParams]
+        return acc
+      }, {} as Record<string, any>)
+    
+    return JSON.stringify(sorted)
+  }
+
   // Actions
 
   /**
@@ -48,7 +63,7 @@ export const usePostsStore = defineStore('posts', () => {
    * @param params 查询参数 (page, pageSize, categoryId, tagId)
    */
   const fetchPosts = async (params?: GetPostsParams) => {
-    const cacheKey = `${CACHE_PREFIX}list:${JSON.stringify(params || {})}`
+    const cacheKey = `${CACHE_PREFIX}list:${serializeParams(params)}`
     
     // 检查缓存
     const cached = cacheManager.get<CachedPostsData>(cacheKey)
@@ -113,7 +128,7 @@ export const usePostsStore = defineStore('posts', () => {
    * @param pageSize 每页数量
    */
   const searchPosts = async (keyword: string, page = 1, pageSize = 10) => {
-    const cacheKey = `${CACHE_PREFIX}search:${keyword}:${page}:${pageSize}`
+    const cacheKey = `${CACHE_PREFIX}search:${serializeParams({ keyword, page, pageSize } as any)}`
     
     // 检查缓存
     const cached = cacheManager.get<CachedPostsData>(cacheKey)
@@ -166,7 +181,7 @@ export const usePostsStore = defineStore('posts', () => {
       cacheKey = `${CACHE_PREFIX}search:${params}`
     } else {
       // 列表缓存
-      cacheKey = `${CACHE_PREFIX}list:${JSON.stringify(params || {})}`
+      cacheKey = `${CACHE_PREFIX}list:${serializeParams(params)}`
     }
     
     cacheManager.remove(cacheKey)

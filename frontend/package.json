@@ -17,7 +17,6 @@
     "test:integration": "vite build && node scripts/verify-integration.js"
   },
   "dependencies": {
-    "@studio-freight/lenis": "^1.0.42",
     "axios": "^1.13.1",
     "gsap": "^3.13.0",
     "lenis": "^1.3.15",

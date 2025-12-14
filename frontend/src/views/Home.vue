@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, defineAsyncComponent } from 'vue'
 import { errorHandler, ErrorLevel } from '@/utils/errorHandler'
 import { usePostsStore } from '@/stores/posts'
 import { useMeta } from '@/composables/useMeta'
@@ -114,8 +114,22 @@ import BlogPostCard from '@/components/blog/BlogPostCard.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import Skeleton from '@/components/common/Skeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
-import Prism from '@/components/common/Prism.vue'
-import CircularGallery from '@/components/common/CircularGallery.vue'
+import Loading from '@/components/common/Loading.vue'
+
+// 异步加载重型 3D 组件
+const Prism = defineAsyncComponent({
+  loader: () => import('@/components/common/Prism.vue'),
+  loadingComponent: Loading,
+  delay: 200,
+  timeout: 3000
+})
+
+const CircularGallery = defineAsyncComponent({
+  loader: () => import('@/components/common/CircularGallery.vue'),
+  loadingComponent: Loading,
+  delay: 200,
+  timeout: 3000
+})
 
 const postsStore = usePostsStore()
 

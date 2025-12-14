@@ -69,7 +69,9 @@ export default defineConfig(({ mode }) => {
           // Vue核心库
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           // HTTP客户端
-          'http-vendor': ['axios']
+          'http-vendor': ['axios'],
+          // 3D 和动画库
+          '3d-vendor': ['ogl', 'gsap', 'lenis']
         },
         // 简化文件命名，避免路径问题
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -83,10 +85,10 @@ export default defineConfig(({ mode }) => {
     cssCodeSplit: true,
     // 压缩配置 (使用 esbuild, 更快)
     minify: 'esbuild',
-    // 生成source map用于调试
-    sourcemap: false,
-    // 确保生成正确的资源清单
-    manifest: false,
+    // 根据环境动态配置 sourcemap
+    sourcemap: mode === 'development',
+    // 生成资源清单，便于 CDN 缓存管理
+    manifest: true,
     // 小于此阈值的导入或引用资源将内联为 base64 编码
     assetsInlineLimit: 4096
   },

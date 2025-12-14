@@ -12,11 +12,12 @@ if (!fs.existsSync(logDir)) {
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
-  winston.format.printf(({ timestamp, level, message, stack }) => {
+  winston.format.printf(({ timestamp, level, message, stack, requestId }) => {
+    const reqId = requestId ? `[${requestId}] ` : '';
     return stack 
-      ? `${timestamp} [${level.toUpperCase()}]: ${message}
+      ? `${timestamp} [${level.toUpperCase()}] ${reqId}${message}
 ${stack}`
-      : `${timestamp} [${level.toUpperCase()}]: ${message}`;
+      : `${timestamp} [${level.toUpperCase()}] ${reqId}${message}`;
   })
 );
 
@@ -52,10 +53,11 @@ logger.add(
   new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
-      winston.format.printf(({ timestamp, level, message, stack }) => {
+      winston.format.printf(({ timestamp, level, message, stack, requestId }) => {
+        const reqId = requestId ? `[${requestId}] ` : '';
         return stack 
-          ? `${timestamp} ${level}: ${message}\n${stack}`
-          : `${timestamp} ${level}: ${message}`;
+          ? `${timestamp} ${level}: ${reqId}${message}\n${stack}`
+          : `${timestamp} ${level}: ${reqId}${message}`;
       })
     ),
   })
@@ -67,6 +69,16 @@ logger.stream = {
     // 移除 morgan 添加的额外换行符
     logger.info(message.trim());
   },
+};
+
+// 创建带请求 ID 的子 logger
+logger.child = (requestId) => {
+  return {
+    debug: (message, ...args) => logger.debug(message, { requestId, ...args }),
+    info: (message, ...args) => logger.info(message, { requestId, ...args }),
+    warn: (message, ...args) => logger.warn(message, { requestId, ...args }),
+    error: (message, ...args) => logger.error(message, { requestId, ...args }),
+  };
 };
 
 module.exports = logger;

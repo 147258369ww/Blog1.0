@@ -11,6 +11,9 @@ const morgan = require('morgan');
 const logger = require('./utils/logger');
 const ipLogger = require('./middlewares/ipLogger');
 const autoRefreshToken = require('./middlewares/autoRefreshToken');
+const requestIdMiddleware = require('./middlewares/requestId');
+const healthCheck = require('./utils/healthCheck');
+const { apiVersionMiddleware } = require('./middlewares/apiVersion');
 
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
@@ -45,6 +48,9 @@ app.use(
     },
   })
 );
+
+// 请求 ID 中间件（必须在日志之前）
+app.use(requestIdMiddleware);
 
 // Morgan 日志中间件，使用自定义IP格式
 app.use(morgan(':client-ip - :method :url :status :response-time ms', { stream: logger.stream }));
@@ -116,8 +122,25 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   },
 }));
 
-// 健康检查
-app.get('/health', (req, res) => {
+// 健康检查端点
+app.get('/health', async (req, res) => {
+  try {
+    const health = await healthCheck.performHealthCheck();
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    res.status(statusCode).json(health);
+  } catch (error) {
+    logger.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      message: 'Health check failed',
+      error: error.message,
+    });
+  }
+});
+
+// 简单的存活检查（不检查依赖）
+app.get('/ping', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -136,6 +159,9 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// API 版本检测中间件
+app.use('/api', apiVersionMiddleware);
 
 // API 路由
 app.use('/api/v1', require('./routes/v1'));
